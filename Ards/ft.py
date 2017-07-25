@@ -4,7 +4,7 @@ import numpy as np
 np.random.seed(1337)
 
 import sys
-sys.path.append('../Lib/')
+sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
 import ConfigParser, os
 from sklearn.metrics import f1_score
@@ -18,12 +18,14 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
-import dataset
+import dataset, word2vec
 
 def print_config(cfg):
   """Print configuration settings"""
 
   print 'train:', cfg.get('data', 'path')
+  if cfg.has_option('data', 'embed'):
+    print 'embeddings:', cfg.get('data', 'embed')
   print 'batch:', cfg.get('nn', 'batch')
   print 'epochs:', cfg.get('nn', 'epochs')
   print 'embdims:', cfg.get('nn', 'embdims')
@@ -36,7 +38,9 @@ def get_model(cfg, num_of_features):
   model = Sequential()
   model.add(Embedding(input_dim=num_of_features,
                       output_dim=cfg.getint('nn', 'embdims'),
-                      input_length=maxlen))
+                      input_length=maxlen,
+                      trainable=True,
+                      weights=init_vectors))
   model.add(GlobalAveragePooling1D())
 
   model.add(Dropout(cfg.getfloat('nn', 'dropout')))
@@ -60,6 +64,12 @@ if __name__ == "__main__":
     data_dir,
     cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
+
+  init_vectors = None
+  if cfg.has_option('data', 'embed'):
+    embed_file = os.path.join(base, cfg.get('data', 'embed'))
+    w2v = word2vec.Model(embed_file)
+    init_vectors = [w2v.select_vectors(dataset.token2int)]
 
   classes = len(dataset.label2int)
   maxlen = max([len(seq) for seq in x])
