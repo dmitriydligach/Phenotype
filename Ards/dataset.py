@@ -26,7 +26,7 @@ class DatasetProvider:
     """Return file as a list of CUIs"""
 
     infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read().lower()
+    text = open(infile).read()
 
     # source task trained on no-polarity cuis
     # target task sometimes includes polarity
