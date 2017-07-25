@@ -113,5 +113,5 @@ if __name__ == "__main__":
     label_f1 = f1_score(gold, predictions, average=None)
     f1_scores.append(label_f1[1])
 
-  print 'all f1s:', f1_scores
   print 'average f1:', np.mean(f1_scores)
+  print 'standard deviation:', np.std(f1_scores)
