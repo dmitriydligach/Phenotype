@@ -48,7 +48,7 @@ class DatasetProvider:
     self.map_subjects_to_codes(cpt_code_file, 'CPT_NUMBER', 'cpt', 5)
     self.make_code_alphabet()
 
-  def get_ngrams(self, file_name):
+  def read_ngrams(self, file_name):
     """Return file as a list of ngrams"""
 
     infile = os.path.join(self.corpus_path, file_name)
@@ -69,11 +69,11 @@ class DatasetProvider:
 
     return ngram_list
 
-  def get_cuis(self, file_name):
+  def read_cuis(self, file_name):
     """Return file as a list of CUIs"""
 
     infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read().lower()
+    text = open(infile).read() # no lowercasing!
     tokens = [token for token in text.split()]
     if len(tokens) > self.max_tokens_in_file:
       return None
@@ -86,7 +86,7 @@ class DatasetProvider:
     # count tokens in the entire corpus
     token_counts = collections.Counter()
     for file in os.listdir(self.corpus_path):
-      file_ngram_list = self.get_cuis(file)
+      file_ngram_list = self.read_cuis(file)
       if file_ngram_list == None:
         continue
       token_counts.update(file_ngram_list)
@@ -146,7 +146,7 @@ class DatasetProvider:
     examples = [] # int sequence represents each example
 
     for file in os.listdir(self.corpus_path):
-      file_ngram_list = self.get_cuis(file)
+      file_ngram_list = self.read_cuis(file)
       if file_ngram_list == None:
         continue # file too long
 

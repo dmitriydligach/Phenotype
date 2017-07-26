@@ -4,7 +4,7 @@ import numpy as np
 np.random.seed(1337)
 
 import sys
-sys.path.append('../Lib/')
+sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
 import ConfigParser, os
 from sklearn.metrics import f1_score
@@ -20,7 +20,7 @@ from keras.layers.core import Dense, Activation
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
-import dataset
+import dataset, word2vec
 
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
@@ -29,6 +29,8 @@ def print_config(cfg):
   """Print configuration settings"""
 
   print 'train:', cfg.get('data', 'train')
+  if cfg.has_option('data', 'embed'):
+    print 'embeddings:', cfg.get('data', 'embed')
   print 'test_size', cfg.getfloat('args', 'test_size')
   print 'batch:', cfg.get('nn', 'batch')
   print 'epochs:', cfg.get('nn', 'epochs')
@@ -36,13 +38,15 @@ def print_config(cfg):
   print 'hidden:', cfg.get('nn', 'hidden')
   print 'learnrt:', cfg.get('nn', 'learnrt')
 
-def get_model(cfg, num_of_features):
+def get_model(cfg, init_vectors, num_of_features):
   """Model definition"""
 
   model = Sequential()
   model.add(Embedding(input_dim=num_of_features,
                       output_dim=cfg.getint('nn', 'embdims'),
                       input_length=maxlen,
+                      trainable=True,
+                      weights=init_vectors,
                       name='EL'))
   model.add(GlobalAveragePooling1D(name='AL'))
 
@@ -77,6 +81,12 @@ if __name__ == "__main__":
     test_size=cfg.getfloat('args', 'test_size'))
   maxlen = max([len(seq) for seq in train_x])
 
+  init_vectors = None
+  if cfg.has_option('data', 'embed'):
+    embed_file = os.path.join(base, cfg.get('data', 'embed'))
+    w2v = word2vec.Model(embed_file)
+    init_vectors = [w2v.select_vectors(dataset.token2int)]
+
   # turn x into numpy array among other things
   classes = len(dataset.code2int)
   train_x = pad_sequences(train_x, maxlen=maxlen)
@@ -91,7 +101,7 @@ if __name__ == "__main__":
   print 'number of features:', len(dataset.token2int)
   print 'number of labels:', len(dataset.code2int)
 
-  model = get_model(cfg, len(dataset.token2int))
+  model = get_model(cfg, init_vectors, len(dataset.token2int))
   optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
