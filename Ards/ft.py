@@ -18,6 +18,7 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
+from keras import regularizers
 import dataset, word2vec
 
 def print_config(cfg):
@@ -47,7 +48,7 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(Dense(cfg.getint('nn', 'hidden')))
   model.add(Activation('relu'))
 
-  model.add(Dense(classes))
+  model.add(Dense(units=classes, kernel_regularizer=regularizers.l1(0.0001)))
   model.add(Activation('softmax'))
 
   return model
