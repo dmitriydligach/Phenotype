@@ -32,7 +32,7 @@ def print_config(cfg):
   print 'hidden:', cfg.get('nn', 'hidden')
   print 'learnrt:', cfg.get('nn', 'learnrt')
 
-def get_model(cfg, num_of_features):
+def get_model(cfg, init_vectors, num_of_features):
   """Model definition"""
 
   model = Sequential()
@@ -88,7 +88,10 @@ if __name__ == "__main__":
     test_x = x[test_indices]
     test_y = y[test_indices]
 
-    model = get_model(cfg, len(dataset.token2int))
+    model = get_model(
+      cfg,
+      init_vectors,
+      len(dataset.token2int))
     optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
