@@ -1,5 +1,7 @@
 # Results
 
+* With pretrained embeddings
+
 [data]
 train = MimicIII/Patients/Cuis/
 codes = MimicIII/Source/
@@ -21,3 +23,10 @@ learnrt = 0.001
 macro average p = 0.482576416973
 macro average r = 0.459769627056
 macro average f1 = 0.465219318178
+
+* No pretrained embeddings
+
+All other settings same as above
+macro average p = 0.499276088428
+macro average r = 0.426736587909
+macro average f1 = 0.454966215055
