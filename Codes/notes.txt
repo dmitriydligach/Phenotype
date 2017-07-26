@@ -1,32 +1,14 @@
 # Results
 
-* With pretrained embeddings
+75 epochs with embeddings
 
-[data]
-train = MimicIII/Patients/Cuis/
-codes = MimicIII/Source/
-embed = Word2VecModels/mimic-cuis.txt
+macro average p = 0.515948620205
+macro average r = 0.445234742802
+macro average f1 = 0.472892203829
 
-[args]
-min_token_freq = 100
-max_tokens_in_file = 10000
-min_examples_per_code = 1000
-test_size = 0.2
+75 epochs no embeddings
 
-[nn]
-batch = 50
-epochs = 100
-embdims = 300
-hidden = 1000
-learnrt = 0.001
+macro average p = 0.524717495517
+macro average r = 0.404569707237
+macro average f1 = 0.446981740939
 
-macro average p = 0.482576416973
-macro average r = 0.459769627056
-macro average f1 = 0.465219318178
-
-* No pretrained embeddings
-
-All other settings same as above
-macro average p = 0.499276088428
-macro average r = 0.426736587909
-macro average f1 = 0.454966215055
