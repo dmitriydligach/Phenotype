@@ -48,7 +48,9 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(Dense(cfg.getint('nn', 'hidden')))
   model.add(Activation('relu'))
 
-  model.add(Dense(units=classes, kernel_regularizer=regularizers.l1(0.0001)))
+  model.add(Dense(
+    units=classes,
+    kernel_regularizer=regularizers.l1(0.0001)))
   model.add(Activation('softmax'))
 
   return model
