@@ -7,7 +7,7 @@ import os.path
 
 BASE = '/Users/Dima/Loyola/Data/Comorbidity'
 NOTES = 'Xml/obesity_patient_records_training.xml'
-OUTDIR = 'Text/'
+OUTDIR = 'Text/Train/'
 
 def write_notes_to_files():
   """Extract notes from xml and write to files"""
