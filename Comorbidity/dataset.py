@@ -74,7 +74,9 @@ class DatasetProvider:
 
       # no labels for some documents for some reason
       if doc_id in doc2label:
-        labels.append(doc2label[doc_id])
+        string_label = doc2label[doc_id]
+        int_label = self.label2int[string_label]
+        labels.append(int_label)
         examples.append(example)
       else:
         print 'missing label for doc:', doc_id
