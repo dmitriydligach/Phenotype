@@ -20,8 +20,9 @@ def run_cross_validation():
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'path'))
+  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
 
-  dataset = DatasetProvider(data_dir, DISEASE, JUDGEMENT)
+  dataset = DatasetProvider(data_dir, annot_xml, DISEASE, JUDGEMENT)
   x, y = dataset.load_raw()
 
   # raw occurences

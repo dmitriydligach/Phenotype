@@ -76,8 +76,10 @@ if __name__ == "__main__":
 
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'path'))
+  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
   dataset = dataset.DatasetProvider(
     data_dir,
+    annot_xml,
     'Asthma',
     'textual',
     cfg.getint('args', 'min_token_freq'))

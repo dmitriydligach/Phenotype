@@ -15,12 +15,14 @@ class DatasetProvider:
 
   def __init__(self,
                corpus_path,
+               annot_xml,
                disease,
                judgement,
                min_token_freq=0):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
+    self.annot_xml = annot_xml
     self.min_token_freq = min_token_freq
     self.disease = disease
     self.judgement = judgement
@@ -58,6 +60,7 @@ class DatasetProvider:
 
     # document id -> label mapping
     doc2label = parse_xml.parse_standoff(
+      self.annot_xml,
       self.disease,
       self.judgement)
 
@@ -97,6 +100,7 @@ class DatasetProvider:
 
     # document id -> label mapping
     doc2label = parse_xml.parse_standoff(
+      self.annot_xml,
       self.disease,
       self.judgement)
 
@@ -121,8 +125,9 @@ if __name__ == "__main__":
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'path'))
+  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
 
-  dataset = DatasetProvider(data_dir, 'Asthma', 'textual')
+  dataset = DatasetProvider(data_dir, annot_xml, 'Asthma', 'textual')
   x, y = dataset.load_raw()
   print x
   print y
