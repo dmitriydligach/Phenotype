@@ -109,7 +109,7 @@ class DatasetProvider:
       if doc_id in doc2label:
         string_label = doc2label[doc_id]
         labels.append(string_label)
-        examples.append(file_feat_list)
+        examples.append(' '.join(file_feat_list))
       else:
         print 'missing label for doc:', doc_id
 
