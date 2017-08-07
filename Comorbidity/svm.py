@@ -23,7 +23,6 @@ def run_cross_validation():
 
   dataset = DatasetProvider(data_dir, DISEASE, JUDGEMENT)
   x, y = dataset.load_raw()
-  print x
 
   # raw occurences
   vectorizer = CountVectorizer(
