@@ -11,15 +11,19 @@ import glob, string, collections, operator
 ALPHABET_FILE = 'alphabet.txt'
 
 class DatasetProvider:
-  """THYME relation data"""
+  """Comorboditiy data loader"""
 
   def __init__(self,
                corpus_path,
+               disease,
+               judgement,
                min_token_freq=0):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
     self.min_token_freq = min_token_freq
+    self.disease = disease
+    self.judgement = judgement
 
     self.label2int = {'N':0, 'Y':1, 'Q':2, 'U':3}
     self.token2int = {}
@@ -36,7 +40,7 @@ class DatasetProvider:
       file_feat_list = utils.read_cuis(file_path)
       token_counts.update(file_feat_list)
 
-    # now make alphabet
+    # now make alphabet (high freq tokens first)
     index = 1
     self.token2int['oov_word'] = 0
     outfile = open(ALPHABET_FILE, 'w')
@@ -47,13 +51,15 @@ class DatasetProvider:
         index = index + 1
 
   def load(self, maxlen=float('inf')):
-    """Convert examples into lists of indices"""
+    """Convert examples into lists of indices for keras"""
 
     labels = []   # int labels
     examples = [] # int sequence represents each example
 
     # document id -> label mapping
-    doc2label = parse_xml.parse_standoff('Asthma', 'textual')
+    doc2label = parse_xml.parse_standoff(
+      self.disease,
+      self.judgement)
 
     # load examples and labels
     for f in os.listdir(self.corpus_path):
@@ -83,6 +89,32 @@ class DatasetProvider:
 
     return examples, labels
 
+  def load_raw(self):
+    """Load for sklearn training"""
+
+    labels = []   # string labels
+    examples = [] # examples as strings
+
+    # document id -> label mapping
+    doc2label = parse_xml.parse_standoff(
+      self.disease,
+      self.judgement)
+
+    for f in os.listdir(self.corpus_path):
+      doc_id = f.split('.')[0]
+      file_path = os.path.join(self.corpus_path, f)
+      file_feat_list = utils.read_cuis(file_path)
+
+      # no labels for some documents for some reason
+      if doc_id in doc2label:
+        string_label = doc2label[doc_id]
+        labels.append(string_label)
+        examples.append(file_feat_list)
+      else:
+        print 'missing label for doc:', doc_id
+
+    return examples, labels
+
 if __name__ == "__main__":
 
   cfg = ConfigParser.ConfigParser()
@@ -90,6 +122,7 @@ if __name__ == "__main__":
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'path'))
 
-  dataset = DatasetProvider(data_dir)
-  x, y = dataset.load()
+  dataset = DatasetProvider(data_dir, 'Asthma', 'textual')
+  x, y = dataset.load_raw()
+  print x
   print y
