@@ -112,7 +112,7 @@ if __name__ == "__main__":
               epochs=cfg.getint('nn', 'epochs'),
               batch_size=cfg.getint('nn', 'batch'),
               validation_split=0.0,
-              verbose=0)
+              verbose=1)
 
     # probability for each class; (test size, num of classes)
     distribution = model.predict(
