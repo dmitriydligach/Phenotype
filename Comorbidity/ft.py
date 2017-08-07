@@ -78,6 +78,8 @@ if __name__ == "__main__":
   data_dir = os.path.join(base, cfg.get('data', 'path'))
   dataset = dataset.DatasetProvider(
     data_dir,
+    'Asthma',
+    'textual',
     cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
 
