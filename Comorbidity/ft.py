@@ -91,7 +91,7 @@ if __name__ == "__main__":
   print 'y shape:', y.shape
   print 'number of features:', len(dataset.token2int)
 
-  f1_scores = []
+  cv_scores = []
   kf = KFold(n_splits=5, shuffle=True, random_state=100)
   for train_indices, test_indices in kf.split(x):
 
@@ -122,8 +122,8 @@ if __name__ == "__main__":
     gold = np.argmax(test_y, axis=1)
 
     # f1 scores
-    label_f1 = f1_score(gold, predictions, average=None)
-    f1_scores.append(label_f1[1])
+    f1 = f1_score(gold, predictions, average='macro')
+    cv_scores.append(f1)
 
-  print 'average f1:', np.mean(f1_scores)
-  print 'standard deviation:', np.std(f1_scores)
+  print 'average f1:', np.mean(cv_scores)
+  print 'standard deviation:', np.std(cv_scores)

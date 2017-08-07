@@ -50,7 +50,6 @@ def run_cross_validation():
     scoring='f1_macro',
     cv=NUM_FOLDS)
 
-  print 'fold f1s:', cv_scores
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
