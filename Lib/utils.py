@@ -16,7 +16,7 @@ def read_cuis(file_path, ignore_negation=False):
     return tokens
 
   else:
-    return [token for token in text.split()]
+    return text.split()
 
 if __name__ == "__main__":
 
