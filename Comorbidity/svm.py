@@ -6,6 +6,12 @@ from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
 from dataset import DatasetProvider
 
+# ignore warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 DISEASE = 'Asthma'
 JUDGEMENT = 'textual'
 FEATURE_LIST = './features.txt'
@@ -43,7 +49,7 @@ def run_cross_validation():
   tf = TfidfTransformer()
   tfidf_matrix = tf.fit_transform(count_matrix)
 
-  classifier = LinearSVC(class_weight='balanced', C=1)
+  classifier = LinearSVC(class_weight='balanced', C=10)
   cv_scores = cross_val_score(
     classifier,
     tfidf_matrix,
