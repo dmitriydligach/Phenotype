@@ -5,11 +5,6 @@ sys.dont_write_bytecode = True
 import xml.etree.ElementTree as et
 import os.path
 
-# BASE = '/Users/Dima/Loyola/Data/Comorbidity/'
-# NOTES = 'Xml/obesity_patient_records_training.xml'
-# ANNOT = 'Xml/obesity_standoff_annotations_training.xml'
-# OUTDIR = 'Text/Train/'
-
 def parse_standoff(xml, disease, task):
   """Make patient to class mapping"""
 
@@ -27,10 +22,10 @@ def parse_standoff(xml, disease, task):
 
   return doc2label
 
-def write_notes_to_files(xml, outdir):
+def write_notes_to_files(notes_xml, output_dir):
   """Extract notes from xml and write to files"""
 
-  tree = et.parse(xml)
+  tree = et.parse(notes_xml)
 
   for doc in tree.iter('doc'):
     doc_id = doc.attrib['id']
@@ -42,5 +37,11 @@ def write_notes_to_files(xml, outdir):
 
 if __name__ == "__main__":
 
-  # parse_standoff('Asthma', 'textual')
-  write_notes_to_files()
+  base = '/Users/Dima/Loyola/Data/'
+  notes = 'Comorbidity/Xml/obesity_patient_records_training2.xml'
+  outdir = 'Comorbidity/Text/Train2/'
+
+  notes_xml = os.path.join(base, notes)
+  output_dir = os.path.join(base, outdir)
+
+  write_notes_to_files(notes_xml, output_dir)
