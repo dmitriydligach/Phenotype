@@ -6,6 +6,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
 from dataset import DatasetProvider
 
 # ignore warnings
@@ -15,11 +18,11 @@ import warnings
 warnings.warn = warn
 
 DISEASE = 'Asthma'
-JUDGEMENT = 'textual'
+JUDGEMENT = 'intuitive'
 FEATURE_LIST = './features.txt'
 NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
-MIN_DF = 75
+MIN_DF = 0
 
 def run_cross_validation():
   """Run n-fold CV on training set"""
@@ -30,10 +33,14 @@ def run_cross_validation():
   train_data = os.path.join(base, cfg.get('data', 'train_data'))
   train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
 
-  dataset = DatasetProvider(train_data, train_annot, DISEASE, JUDGEMENT)
+  dataset = DatasetProvider(
+    train_data,
+    train_annot,
+    DISEASE,
+    JUDGEMENT)
   x, y = dataset.load_raw()
 
-  # raw occurences
+  # fit builds alphabet; transform extracts counts
   vectorizer = CountVectorizer(
     ngram_range=NGRAM_RANGE,
     stop_words='english',
@@ -47,7 +54,7 @@ def run_cross_validation():
   for feature in vectorizer.get_feature_names():
     feature_file.write(feature + '\n')
 
-  # tf-idf
+  # transform raw counts to tf-idf
   tf = TfidfTransformer()
   tfidf_matrix = tf.fit_transform(count_matrix)
 
@@ -62,6 +69,54 @@ def run_cross_validation():
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
+def run_evaluation():
+  """Train on train set and evaluate on test set"""
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  test_data = os.path.join(base, cfg.get('data', 'test_data'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+
+  # handle training data first
+  train_data_provider = DatasetProvider(
+    train_data,
+    train_annot,
+    DISEASE,
+    JUDGEMENT)
+  x_train, y_train = train_data_provider.load_raw()
+
+  vectorizer = CountVectorizer(
+    ngram_range=NGRAM_RANGE,
+    stop_words='english',
+    min_df=MIN_DF,
+    vocabulary=None,
+    binary=False)
+  train_count_matrix = vectorizer.fit_transform(x_train)
+
+  tf = TfidfTransformer()
+  train_tfidf_matrix = tf.fit_transform(train_count_matrix)
+
+  # now handle the test set
+  test_data_provider = DatasetProvider(
+    test_data,
+    test_annot,
+    DISEASE,
+    JUDGEMENT)
+  x_test, y_test = test_data_provider.load_raw()
+
+  test_count_matrix = vectorizer.transform(x_test)
+  test_tfidf_matrix = tf.transform(test_count_matrix)
+
+  classifier = LinearSVC(class_weight='balanced', C=10)
+  classifier.fit(train_tfidf_matrix, y_train)
+  predictions = classifier.predict(test_tfidf_matrix)
+
+  f1 = f1_score(y_test, predictions, average='macro')
+  print 'f1 =', f1
+
 if __name__ == "__main__":
 
-  run_cross_validation()
+  run_evaluation()
