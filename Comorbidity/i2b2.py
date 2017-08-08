@@ -38,8 +38,8 @@ def write_notes_to_files(notes_xml, output_dir):
 if __name__ == "__main__":
 
   base = '/Users/Dima/Loyola/Data/'
-  notes = 'Comorbidity/Xml/obesity_patient_records_training2.xml'
-  outdir = 'Comorbidity/Text/Train2/'
+  notes = 'Comorbidity/Xml/obesity_patient_records_test.xml'
+  outdir = 'Comorbidity/Text/Test/'
 
   notes_xml = os.path.join(base, notes)
   output_dir = os.path.join(base, outdir)
