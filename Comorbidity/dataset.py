@@ -3,7 +3,7 @@
 import sys
 sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
-import utils, parse_xml
+import utils, i2b2
 import numpy, pickle
 import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
@@ -59,7 +59,7 @@ class DatasetProvider:
     examples = [] # int sequence represents each example
 
     # document id -> label mapping
-    doc2label = parse_xml.parse_standoff(
+    doc2label = i2b2.parse_standoff(
       self.annot_xml,
       self.disease,
       self.judgement)
@@ -99,7 +99,7 @@ class DatasetProvider:
     examples = [] # examples as strings
 
     # document id -> label mapping
-    doc2label = parse_xml.parse_standoff(
+    doc2label = i2b2.parse_standoff(
       self.annot_xml,
       self.disease,
       self.judgement)

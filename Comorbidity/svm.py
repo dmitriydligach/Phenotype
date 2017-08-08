@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import numpy, sys, ConfigParser, os
+import sys
+sys.dont_write_bytecode = True
+import numpy, ConfigParser, os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
