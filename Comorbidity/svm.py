@@ -17,7 +17,7 @@ JUDGEMENT = 'textual'
 FEATURE_LIST = './features.txt'
 NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
-MIN_DF = 0
+MIN_DF = 75
 
 def run_cross_validation():
   """Run n-fold CV and return average accuracy"""
