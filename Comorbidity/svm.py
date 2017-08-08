@@ -22,15 +22,15 @@ NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 75
 
 def run_cross_validation():
-  """Run n-fold CV and return average accuracy"""
+  """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  data_dir = os.path.join(base, cfg.get('data', 'path'))
-  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
 
-  dataset = DatasetProvider(data_dir, annot_xml, DISEASE, JUDGEMENT)
+  dataset = DatasetProvider(train_data, train_annot, DISEASE, JUDGEMENT)
   x, y = dataset.load_raw()
 
   # raw occurences
