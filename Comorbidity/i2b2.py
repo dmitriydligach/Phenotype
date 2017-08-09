@@ -22,6 +22,17 @@ def parse_standoff(xml, disease, task):
 
   return doc2label
 
+def get_disease_names(xml):
+  """Get list of diseases from standoff files"""
+
+  disease_names = set()
+  tree = et.parse(xml)
+
+  for disease_elem in tree.iter('disease'):
+    disease_names.add(disease_elem.attrib['name'])
+
+  return disease_names
+
 def write_notes_to_files(notes_xml, output_dir):
   """Extract notes from xml and write to files"""
 
@@ -39,9 +50,11 @@ if __name__ == "__main__":
 
   base = '/Users/Dima/Loyola/Data/'
   notes = 'Comorbidity/Xml/obesity_patient_records_test.xml'
+  xml = 'Comorbidity/Xml/obesity_standoff_annotations_test.xml'
   outdir = 'Comorbidity/Text/Test/'
 
   notes_xml = os.path.join(base, notes)
   output_dir = os.path.join(base, outdir)
 
-  write_notes_to_files(notes_xml, output_dir)
+  # write_notes_to_files(notes_xml, output_dir)
+  print get_disease_names(os.path.join(base, xml))
