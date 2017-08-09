@@ -95,8 +95,9 @@ class DatasetProvider:
   def load_raw(self):
     """Load for sklearn training"""
 
-    labels = []   # string labels
-    examples = [] # examples as strings
+    labels = []    # string labels
+    examples = []  # examples as strings
+    no_labels = [] # docs with no labels
 
     # document id -> label mapping
     doc2label = i2b2.parse_standoff(
@@ -115,8 +116,11 @@ class DatasetProvider:
         labels.append(string_label)
         examples.append(' '.join(file_feat_list))
       else:
-        print 'missing label for doc:', doc_id
+        no_labels.append(doc_id)
 
+    print '%d documents with no labels for %s/%s in %s' \
+      % (len(no_labels), self.disease,
+         self.judgement, self.annot_xml.split('/')[-1])
     return examples, labels
 
 if __name__ == "__main__":
