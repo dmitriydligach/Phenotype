@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import sys
 sys.dont_write_bytecode = True
 import numpy, ConfigParser, os
@@ -10,6 +11,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from dataset import DatasetProvider
+import i2b2
 
 # ignore warnings
 def warn(*args, **kwargs):
@@ -17,14 +19,12 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-DISEASE = 'Asthma'
-JUDGEMENT = 'intuitive'
 FEATURE_LIST = './features.txt'
 NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
 
-def run_cross_validation():
+def run_cross_validation(disease, judgement):
   """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -36,8 +36,8 @@ def run_cross_validation():
   dataset = DatasetProvider(
     train_data,
     train_annot,
-    DISEASE,
-    JUDGEMENT)
+    disease,
+    judgement)
   x, y = dataset.load_raw()
 
   # fit builds alphabet; transform extracts counts
@@ -69,7 +69,7 @@ def run_cross_validation():
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation():
+def run_evaluation(disease, judgement):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -84,8 +84,8 @@ def run_evaluation():
   train_data_provider = DatasetProvider(
     train_data,
     train_annot,
-    DISEASE,
-    JUDGEMENT)
+    disease,
+    judgement)
   x_train, y_train = train_data_provider.load_raw()
 
   vectorizer = CountVectorizer(
@@ -103,8 +103,8 @@ def run_evaluation():
   test_data_provider = DatasetProvider(
     test_data,
     test_annot,
-    DISEASE,
-    JUDGEMENT)
+    disease,
+    judgement)
   x_test, y_test = test_data_provider.load_raw()
 
   test_count_matrix = vectorizer.transform(x_test)
@@ -115,8 +115,21 @@ def run_evaluation():
   predictions = classifier.predict(test_tfidf_matrix)
 
   f1 = f1_score(y_test, predictions, average='macro')
-  print 'f1 =', f1
+  print '%s: f1 = %.3f' % (disease, f1)
+
+def run_evaluation_all_diseases():
+  """Evaluate classifier performance for all 16 comorbidities"""
+
+  exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+
+  for disease in i2b2.get_disease_names(train_annot, exclude):
+    run_evaluation(disease, 'intuitive')
 
 if __name__ == "__main__":
 
-  run_evaluation()
+  run_evaluation_all_diseases()

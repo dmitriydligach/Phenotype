@@ -22,14 +22,16 @@ def parse_standoff(xml, disease, task):
 
   return doc2label
 
-def get_disease_names(xml):
+def get_disease_names(xml, exclude=set()):
   """Get list of diseases from standoff files"""
 
   disease_names = set()
   tree = et.parse(xml)
 
   for disease_elem in tree.iter('disease'):
-    disease_names.add(disease_elem.attrib['name'])
+    disease_name = disease_elem.attrib['name']
+    if not disease_name in exclude:
+      disease_names.add(disease_name)
 
   return disease_names
 
