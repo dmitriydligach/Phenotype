@@ -110,12 +110,14 @@ def run_evaluation(disease, judgement):
   test_count_matrix = vectorizer.transform(x_test)
   test_tfidf_matrix = tf.transform(test_count_matrix)
 
-  classifier = LinearSVC(class_weight='balanced', C=10)
+  classifier = LinearSVC(class_weight='balanced', C=1)
   classifier.fit(train_tfidf_matrix, y_train)
   predictions = classifier.predict(test_tfidf_matrix)
 
   f1 = f1_score(y_test, predictions, average='macro')
   print '%s: f1 = %.3f' % (disease, f1)
+
+  return f1
 
 def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
@@ -127,8 +129,12 @@ def run_evaluation_all_diseases():
   base = os.environ['DATA_ROOT']
   train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
 
+  f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    run_evaluation(disease, 'intuitive')
+    f1 = run_evaluation(disease, 'intuitive')
+    f1s.append(f1)
+
+  print 'average f1 =', numpy.mean(f1s)
 
 if __name__ == "__main__":
 
