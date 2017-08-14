@@ -24,7 +24,7 @@ import dataset, word2vec
 def print_config(cfg):
   """Print configuration settings"""
 
-  print 'train:', cfg.get('data', 'path')
+  print 'train:', cfg.get('data', 'train_data')
   if cfg.has_option('data', 'embed'):
     print 'embeddings:', cfg.get('data', 'embed')
   print 'batch:', cfg.get('nn', 'batch')
@@ -75,8 +75,8 @@ if __name__ == "__main__":
   print_config(cfg)
 
   base = os.environ['DATA_ROOT']
-  data_dir = os.path.join(base, cfg.get('data', 'path'))
-  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
+  data_dir = os.path.join(base, cfg.get('data', 'train_data'))
+  annot_xml = os.path.join(base, cfg.get('data', 'train_annot'))
   dataset = dataset.DatasetProvider(
     data_dir,
     annot_xml,
