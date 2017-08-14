@@ -119,7 +119,7 @@ def run_evaluation(disease, judgement):
 
   return f1
 
-def run_evaluation_all_diseases():
+def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
@@ -131,11 +131,11 @@ def run_evaluation_all_diseases():
 
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    f1 = run_evaluation(disease, 'intuitive')
+    f1 = run_evaluation(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', numpy.mean(f1s)
 
 if __name__ == "__main__":
 
-  run_evaluation_all_diseases()
+  run_evaluation_all_diseases('intuitive')

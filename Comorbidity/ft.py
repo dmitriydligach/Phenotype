@@ -81,7 +81,7 @@ if __name__ == "__main__":
     data_dir,
     annot_xml,
     'Asthma',
-    'textual',
+    'intuitive',
     cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
               epochs=cfg.getint('nn', 'epochs'),
               batch_size=cfg.getint('nn', 'batch'),
               validation_split=0.0,
-              verbose=1)
+              verbose=0)
 
     # probability for each class; (test size, num of classes)
     distribution = model.predict(
