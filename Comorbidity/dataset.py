@@ -55,8 +55,9 @@ class DatasetProvider:
   def load(self, maxlen=float('inf')):
     """Convert examples into lists of indices for keras"""
 
-    labels = []   # int labels
-    examples = [] # int sequence represents each example
+    labels = []    # int labels
+    examples = []  # examples as int sequences
+    no_labels = [] # docs with no labels
 
     # document id -> label mapping
     doc2label = i2b2.parse_standoff(
@@ -88,8 +89,11 @@ class DatasetProvider:
         labels.append(int_label)
         examples.append(example)
       else:
-        print 'missing label for doc:', doc_id
+        no_labels.append(doc_id)
 
+    print '%d documents with no labels for %s/%s in %s' \
+      % (len(no_labels), self.disease,
+         self.judgement, self.annot_xml.split('/')[-1])
     return examples, labels
 
   def load_raw(self):
