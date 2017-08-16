@@ -19,7 +19,8 @@ from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras import regularizers
-import dataset, word2vec
+from dataset import DatasetProvider
+import word2vec
 
 def print_config(cfg):
   """Print configuration settings"""
@@ -33,15 +34,15 @@ def print_config(cfg):
   print 'hidden:', cfg.get('nn', 'hidden')
   print 'learnrt:', cfg.get('nn', 'learnrt')
 
-def get_model(cfg, num_of_features):
+def get_model(cfg, token2int, max_input_len, classes):
   """Model definition"""
 
   model = Sequential()
-  model.add(Embedding(input_dim=num_of_features,
+  model.add(Embedding(input_dim=len(token2int),
                       output_dim=cfg.getint('nn', 'embdims'),
-                      input_length=maxlen,
+                      input_length=max_input_len,
                       trainable=True,
-                      weights=get_embeddings(cfg)))
+                      weights=get_embeddings(cfg, token2int)))
   model.add(GlobalAveragePooling1D())
 
   model.add(Dropout(cfg.getfloat('nn', 'dropout')))
@@ -55,7 +56,7 @@ def get_model(cfg, num_of_features):
 
   return model
 
-def get_embeddings(cfg):
+def get_embeddings(cfg, token2int):
   """Initial weights for embedding layer"""
 
   init_vectors = None
@@ -64,11 +65,12 @@ def get_embeddings(cfg):
   if cfg.has_option('data', 'embed'):
     embed_file = os.path.join(base, cfg.get('data', 'embed'))
     w2v = word2vec.Model(embed_file)
-    init_vectors = [w2v.select_vectors(dataset.token2int)]
+    init_vectors = [w2v.select_vectors(token2int)]
 
   return init_vectors
 
-if __name__ == "__main__":
+def run_cross_validation(disease, judgement):
+  """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
@@ -77,11 +79,11 @@ if __name__ == "__main__":
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'train_data'))
   annot_xml = os.path.join(base, cfg.get('data', 'train_annot'))
-  dataset = dataset.DatasetProvider(
+  dataset = DatasetProvider(
     data_dir,
     annot_xml,
-    'Asthma',
-    'intuitive',
+    disease,
+    judgement,
     cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
 
@@ -102,7 +104,7 @@ if __name__ == "__main__":
     test_x = x[test_indices]
     test_y = y[test_indices]
 
-    model = get_model(cfg, len(dataset.token2int))
+    model = get_model(cfg, dataset.token2int, maxlen, classes)
     optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
@@ -129,3 +131,7 @@ if __name__ == "__main__":
 
   print 'average f1:', np.mean(cv_scores)
   print 'standard deviation:', np.std(cv_scores)
+
+if __name__ == "__main__":
+
+  run_cross_validation('Asthma', 'intuitive')
