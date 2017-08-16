@@ -54,11 +54,14 @@ def get_model(cfg, token2int, max_input_len, classes):
                       weights=get_embeddings(cfg, token2int)))
   model.add(GlobalAveragePooling1D())
 
+  reg_coef = cfg.getfloat('nn', 'regcoef')
+  
   model.add(Dropout(cfg.getfloat('nn', 'dropout')))
-  model.add(Dense(cfg.getint('nn', 'hidden')))
+  model.add(Dense(
+    units=cfg.getint('nn', 'hidden'),
+    kernel_regularizer=regularizers.l2(reg_coef)))
   model.add(Activation('relu'))
 
-  reg_coef = cfg.getfloat('nn', 'regcoef')
   model.add(Dense(
     units=classes,
     kernel_regularizer=regularizers.l2(reg_coef)))
