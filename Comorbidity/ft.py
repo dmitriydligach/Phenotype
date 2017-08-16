@@ -40,6 +40,7 @@ def print_config(cfg):
   print 'epochs:', cfg.get('nn', 'epochs')
   print 'embdims:', cfg.get('nn', 'embdims')
   print 'hidden:', cfg.get('nn', 'hidden')
+  print 'regcoef', cfg.get('nn', 'regcoef')
   print 'learnrt:', cfg.get('nn', 'learnrt')
 
 def get_model(cfg, token2int, max_input_len, classes):
@@ -57,9 +58,10 @@ def get_model(cfg, token2int, max_input_len, classes):
   model.add(Dense(cfg.getint('nn', 'hidden')))
   model.add(Activation('relu'))
 
+  reg_coef = cfg.getfloat('nn', 'regcoef')
   model.add(Dense(
     units=classes,
-    kernel_regularizer=regularizers.l1(0.0001)))
+    kernel_regularizer=regularizers.l1(reg_coef)))
   model.add(Activation('softmax'))
 
   return model
