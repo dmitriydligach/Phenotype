@@ -99,9 +99,6 @@ def run_cross_validation(disease, judgement):
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
   y = to_categorical(y, classes)
-  print 'x shape:', x.shape
-  print 'y shape:', y.shape
-  print 'number of features:', len(dataset.token2int)
 
   cv_scores = []
   kf = KFold(n_splits=NUM_FOLDS, shuffle=True, random_state=100)
@@ -140,6 +137,72 @@ def run_cross_validation(disease, judgement):
   print 'average f1:', np.mean(cv_scores)
   print 'standard deviation:', np.std(cv_scores)
 
+def run_evaluation(disease, judgement):
+  """Train on train set and evaluate on test set"""
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  print_config(cfg)
+  base = os.environ['DATA_ROOT']
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  test_data = os.path.join(base, cfg.get('data', 'test_data'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+
+  # load training data first
+  train_data_provider = DatasetProvider(
+    train_data,
+    train_annot,
+    disease,
+    judgement,
+    cfg.getint('args', 'min_token_freq'))
+  x_train, y_train = train_data_provider.load()
+
+  classes = len(train_data_provider.label2int)
+  maxlen = max([len(seq) for seq in x_train])
+  x_train = pad_sequences(x_train, maxlen=maxlen)
+  y_train = to_categorical(y_train, classes)
+
+  # now load the test set
+  test_data_provider = DatasetProvider(
+    test_data,
+    test_annot,
+    disease,
+    judgement,
+    cfg.getint('args', 'min_token_freq'))
+  x_test, y_test = test_data_provider.load() # pass maxlen
+  x_test = pad_sequences(x_test, maxlen=maxlen)
+  y_test = to_categorical(y_test, classes)
+
+  model = get_model(
+    cfg,
+    train_data_provider.token2int,
+    maxlen,
+    classes)
+  optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
+  model.compile(loss='categorical_crossentropy',
+                optimizer=optimizer,
+                metrics=['accuracy'])
+  model.fit(x_train,
+            y_train,
+            epochs=cfg.getint('nn', 'epochs'),
+            batch_size=cfg.getint('nn', 'batch'),
+            validation_split=0.0,
+            verbose=0)
+
+  # probability for each class; (test size, num of classes)
+  distribution = model.predict(
+    x_test,
+    batch_size=cfg.getint('nn', 'batch'))
+  # class predictions; (test size,)
+  predictions = np.argmax(distribution, axis=1)
+  # gold labels; (test size,)
+  gold = np.argmax(y_test, axis=1)
+
+  # f1 scores
+  f1 = f1_score(gold, predictions, average='macro')
+  print '%s: f1 = %.3f' % (disease, f1)
+
 def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
@@ -155,8 +218,8 @@ def run_evaluation_all_diseases(judgement):
     f1 = run_cross_validation(disease, judgement)
     f1s.append(f1)
 
-  print 'average f1 =', numpy.mean(f1s)
+  print 'average f1 =', np.mean(f1s)
 
 if __name__ == "__main__":
 
-  run_evaluation_all_diseases('intuitive')
+  run_evaluation('Asthma', 'intuitive')
