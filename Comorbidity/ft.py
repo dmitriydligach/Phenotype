@@ -61,7 +61,7 @@ def get_model(cfg, token2int, max_input_len, classes):
   reg_coef = cfg.getfloat('nn', 'regcoef')
   model.add(Dense(
     units=classes,
-    kernel_regularizer=regularizers.l1(reg_coef)))
+    kernel_regularizer=regularizers.l2(reg_coef)))
   model.add(Activation('softmax'))
 
   return model
