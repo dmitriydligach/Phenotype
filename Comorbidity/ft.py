@@ -20,7 +20,15 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras import regularizers
 from dataset import DatasetProvider
-import word2vec
+import word2vec, i2b2
+
+NUM_FOLDS = 5
+
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
 
 def print_config(cfg):
   """Print configuration settings"""
@@ -96,7 +104,7 @@ def run_cross_validation(disease, judgement):
   print 'number of features:', len(dataset.token2int)
 
   cv_scores = []
-  kf = KFold(n_splits=5, shuffle=True, random_state=100)
+  kf = KFold(n_splits=NUM_FOLDS, shuffle=True, random_state=100)
   for train_indices, test_indices in kf.split(x):
 
     train_x = x[train_indices]
@@ -132,6 +140,23 @@ def run_cross_validation(disease, judgement):
   print 'average f1:', np.mean(cv_scores)
   print 'standard deviation:', np.std(cv_scores)
 
+def run_evaluation_all_diseases(judgement):
+  """Evaluate classifier performance for all 16 comorbidities"""
+
+  exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+
+  f1s = []
+  for disease in i2b2.get_disease_names(train_annot, exclude):
+    f1 = run_cross_validation(disease, judgement)
+    f1s.append(f1)
+
+  print 'average f1 =', numpy.mean(f1s)
+
 if __name__ == "__main__":
 
-  run_cross_validation('Asthma', 'intuitive')
+  run_evaluation_all_diseases('intuitive')

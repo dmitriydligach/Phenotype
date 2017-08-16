@@ -13,7 +13,7 @@ from sklearn.metrics import f1_score
 from dataset import DatasetProvider
 import i2b2
 
-# ignore warnings
+# ignore sklearn warnings
 def warn(*args, **kwargs):
   pass
 import warnings
