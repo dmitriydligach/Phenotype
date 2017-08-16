@@ -8,7 +8,8 @@ import numpy, pickle
 import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
 
-ALPHABET_FILE = 'alphabet.txt'
+ALPHABET_FILE = 'Model/alphabet.txt'
+ALPHABET_PICKLE = 'Model/alphabet.p'
 
 class DatasetProvider:
   """Comorboditiy data loader"""
@@ -18,6 +19,7 @@ class DatasetProvider:
                annot_xml,
                disease,
                judgement,
+               use_pickled_alphabet=False,
                min_token_freq=0):
     """Index words by frequency in a file"""
 
@@ -29,7 +31,14 @@ class DatasetProvider:
 
     self.label2int = {'N':0, 'Y':1, 'Q':2, 'U':3}
     self.token2int = {}
-    self.make_token_alphabet()
+
+    # when training, make alphabet and pickle it
+    # when testing, load it from pickle
+    if use_pickled_alphabet:
+      pkl = open(ALPHABET_PICKLE, 'rb')
+      self.token2int = pickle.load(pkl)
+    else:
+      self.make_token_alphabet()
 
   def make_token_alphabet(self):
     """Map tokens (CUIs) to integers"""
@@ -51,6 +60,10 @@ class DatasetProvider:
         outfile.write('%s|%s\n' % (token, count))
         self.token2int[token] = index
         index = index + 1
+
+    # pickle alphabet
+    pickle_file = open(ALPHABET_PICKLE, 'wb')
+    pickle.dump(self.token2int, pickle_file)
 
   def load(self, maxlen=float('inf')):
     """Convert examples into lists of indices for keras"""

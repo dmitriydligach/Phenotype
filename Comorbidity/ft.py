@@ -92,7 +92,8 @@ def run_cross_validation(disease, judgement):
     annot_xml,
     disease,
     judgement,
-    cfg.getint('args', 'min_token_freq'))
+    alphabet_from_file=False,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
 
   classes = len(dataset.label2int)
@@ -155,7 +156,8 @@ def run_evaluation(disease, judgement):
     train_annot,
     disease,
     judgement,
-    cfg.getint('args', 'min_token_freq'))
+    use_pickled_alphabet=False,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
   x_train, y_train = train_data_provider.load()
 
   classes = len(train_data_provider.label2int)
@@ -169,7 +171,8 @@ def run_evaluation(disease, judgement):
     test_annot,
     disease,
     judgement,
-    cfg.getint('args', 'min_token_freq'))
+    use_pickled_alphabet=True,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
   x_test, y_test = test_data_provider.load() # pass maxlen
   x_test = pad_sequences(x_test, maxlen=maxlen)
   y_test = to_categorical(y_test, classes)

@@ -19,7 +19,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-FEATURE_LIST = './features.txt'
+FEATURE_LIST = 'Model/features.txt'
 NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
