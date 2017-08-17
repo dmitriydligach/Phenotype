@@ -55,7 +55,7 @@ def get_model(cfg, token2int, max_input_len, classes):
   model.add(GlobalAveragePooling1D())
 
   reg_coef = cfg.getfloat('nn', 'regcoef')
-  
+
   model.add(Dropout(cfg.getfloat('nn', 'dropout')))
   model.add(Dense(
     units=cfg.getint('nn', 'hidden'),
@@ -97,7 +97,7 @@ def run_cross_validation(disease, judgement):
     annot_xml,
     disease,
     judgement,
-    alphabet_from_file=False,
+    use_pickled_alphabet=False,
     min_token_freq=cfg.getint('args', 'min_token_freq'))
   x, y = dataset.load()
 
@@ -223,11 +223,11 @@ def run_evaluation_all_diseases(judgement):
 
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    f1 = run_cross_validation(disease, judgement)
+    f1 = run_evaluation(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', np.mean(f1s)
 
 if __name__ == "__main__":
 
-  run_evaluation('Asthma', 'intuitive')
+  run_evaluation_all_diseases('intuitive')
