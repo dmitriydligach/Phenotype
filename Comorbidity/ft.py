@@ -211,6 +211,8 @@ def run_evaluation(disease, judgement):
   f1 = f1_score(gold, predictions, average='macro')
   print '%s: f1 = %.3f' % (disease, f1)
 
+  return f1
+
 def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
