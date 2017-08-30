@@ -29,7 +29,7 @@ class DatasetProvider:
     self.disease = disease
     self.judgement = judgement
 
-    self.label2int = {'N':0, 'Y':1, 'Q':2, 'U':3}
+    self.label2int = {'No':0, 'Yes':1}
     self.token2int = {}
 
     # when training, make alphabet and pickle it
@@ -145,10 +145,11 @@ if __name__ == "__main__":
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  data_dir = os.path.join(base, cfg.get('data', 'path'))
-  annot_xml = os.path.join(base, cfg.get('data', 'annot'))
+  data_dir = os.path.join(base, cfg.get('data', 'train_data'))
+  annot_xml = os.path.join(base, cfg.get('data', 'train_annot'))
 
-  dataset = DatasetProvider(data_dir, annot_xml, 'Asthma', 'textual')
+  dataset = DatasetProvider(data_dir, annot_xml, 'Obesity', 'intuitive')
   x, y = dataset.load_raw()
   print x
   print y
+  print 'unique labels:', set(y)

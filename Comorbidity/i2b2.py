@@ -5,6 +5,9 @@ sys.dont_write_bytecode = True
 import xml.etree.ElementTree as et
 import os.path
 
+# map labels so this is a binary task
+to_binary = {'Y': 'Yes', 'N': 'No', 'Q': 'No', 'U': 'No'}
+
 def parse_standoff(xml, disease, task):
   """Make patient to class mapping"""
 
@@ -18,7 +21,8 @@ def parse_standoff(xml, disease, task):
           for doc_elem in disease_elem:
             id = doc_elem.attrib['id']
             label = doc_elem.attrib['judgment']
-            doc2label[id] = label
+            binary_label = to_binary[label]
+            doc2label[id] = binary_label
 
   return doc2label
 
