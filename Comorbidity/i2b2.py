@@ -37,7 +37,7 @@ def get_disease_names(xml, exclude=set()):
     if not disease_name in exclude:
       disease_names.add(disease_name)
 
-  return disease_names
+  return sorted(list(disease_names))
 
 def write_notes_to_files(notes_xml, output_dir):
   """Extract notes from xml and write to files"""
