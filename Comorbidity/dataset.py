@@ -109,6 +109,49 @@ class DatasetProvider:
          self.judgement, self.annot_xml.split('/')[-1])
     return examples, labels
 
+  def load_vectorized(self, exclude, maxlen=float('inf')):
+    """Same as above but labels are vectors"""
+
+    labels = []    # int labels
+    examples = []  # examples as int sequences
+    no_labels = [] # docs with no labels
+
+    # document id -> vector of labels
+    doc2labels = i2b2.parse_standoff_vectorized(
+      self.annot_xml,
+      self.judgement,
+      exclude)
+
+    # load examples and labels
+    for f in os.listdir(self.corpus_path):
+      doc_id = f.split('.')[0]
+      file_path = os.path.join(self.corpus_path, f)
+      file_feat_list = utils.read_cuis(file_path)
+
+      example = []
+      # TODO: use unique tokens or not?
+      for token in set(file_feat_list):
+        if token in self.token2int:
+          example.append(self.token2int[token])
+        else:
+          example.append(self.token2int['oov_word'])
+
+      if len(example) > maxlen:
+        example = example[0:maxlen]
+
+      # no labels for some documents for some reason
+      if doc_id in doc2labels:
+        label_vector = doc2labels[doc_id]
+        labels.append(label_vector)
+        examples.append(example)
+      else:
+        no_labels.append(doc_id)
+
+    print '%d documents with no labels for %s/%s in %s' \
+      % (len(no_labels), self.disease,
+         self.judgement, self.annot_xml.split('/')[-1])
+    return examples, labels
+
   def load_raw(self):
     """Load for sklearn training"""
 
@@ -149,7 +192,7 @@ if __name__ == "__main__":
   annot_xml = os.path.join(base, cfg.get('data', 'train_annot'))
 
   dataset = DatasetProvider(data_dir, annot_xml, 'Obesity', 'intuitive')
-  x, y = dataset.load_raw()
+  exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
+  x, y = dataset.load_vectorized(exclude)
   print x
   print y
-  print 'unique labels:', set(y)

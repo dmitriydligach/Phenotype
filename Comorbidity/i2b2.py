@@ -41,15 +41,17 @@ def parse_standoff_vectorized(xml, task, exclude=set()):
     if task_elem.attrib['source'] == task:
       for disease_elem in task_elem:
 
+        disease_name = disease_elem.attrib['name']
+        if disease_name in exclude:
+          continue
+        disease_index = dis2int[disease_name]
+
         for doc_elem in disease_elem:
           id = doc_elem.attrib['id']
-
           if not id in doc2labels:
             doc2labels[id] = [0] * len(dis2int)
 
-          disease_name = disease_elem.attrib['name']
           disease_label = doc_elem.attrib['judgment']
-          disease_index = dis2int[disease_name]
           doc2labels[id][disease_index] = to_int[disease_label]
 
   return doc2labels
@@ -91,4 +93,3 @@ if __name__ == "__main__":
 
   doc2labels = parse_standoff_vectorized(annot_xml, 'intuitive')
   print doc2labels
-  
