@@ -17,8 +17,8 @@ class DatasetProvider:
   def __init__(self,
                corpus_path,
                annot_xml,
-               disease,
-               judgement,
+               disease=None,
+               judgement='intuitive',
                use_pickled_alphabet=False,
                min_token_freq=0):
     """Index words by frequency in a file"""
@@ -191,7 +191,7 @@ if __name__ == "__main__":
   data_dir = os.path.join(base, cfg.get('data', 'train_data'))
   annot_xml = os.path.join(base, cfg.get('data', 'train_annot'))
 
-  dataset = DatasetProvider(data_dir, annot_xml, 'Obesity', 'intuitive')
+  dataset = DatasetProvider(data_dir, annot_xml)
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
   x, y = dataset.load_vectorized(exclude)
   print x
