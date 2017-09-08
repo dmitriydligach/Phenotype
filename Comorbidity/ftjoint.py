@@ -8,6 +8,8 @@ sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
 import ConfigParser, os
 from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.model_selection import KFold
 import keras as k
 from keras.utils.np_utils import to_categorical
@@ -109,6 +111,8 @@ def run_evaluation(exclude, judgement='intuitive'):
   x_train = pad_sequences(x_train, maxlen=maxlen)
   y_train = np.array(y_train);
 
+  print 'train shape:', x_train.shape, y_train.shape
+
   # now load the test set
   test_data_provider = DatasetProvider(
     test_data,
@@ -117,9 +121,11 @@ def run_evaluation(exclude, judgement='intuitive'):
     judgement=judgement,
     use_pickled_alphabet=True,
     min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_test, y_test = test_data_provider.load() # pass maxlen
+  x_test, y_test = test_data_provider.load_vectorized(exclude) # pass maxlen
   x_test = pad_sequences(x_test, maxlen=maxlen)
   y_test = np.array(y_test)
+
+  print 'test shape:', x_test.shape, y_test.shape
 
   model = get_model(
     cfg,
@@ -140,16 +146,16 @@ def run_evaluation(exclude, judgement='intuitive'):
 
   # probability for each class; (test size, num of classes)
   distribution = model.predict(
-    test_x,
+    x_test,
     batch_size=cfg.getint('nn', 'batch'))
 
   # turn into an indicator matrix
   distribution[distribution < 0.5] = 0
   distribution[distribution >= 0.5] = 1
 
-  f1 = f1_score(test_y, distribution, average='macro')
-  precision = precision_score(test_y, distribution, average='macro')
-  recall = recall_score(test_y, distribution, average='macro')
+  f1 = f1_score(y_test, distribution, average='macro')
+  precision = precision_score(y_test, distribution, average='macro')
+  recall = recall_score(y_test, distribution, average='macro')
   print 'macro average p =', precision
   print 'macro average r =', recall
   print 'macro average f1 =', f1
