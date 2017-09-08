@@ -7,6 +7,8 @@ import sys
 sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
 import ConfigParser, os
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.model_selection import KFold
 import keras as k
@@ -43,7 +45,12 @@ def print_config(cfg):
   print 'regcoef', cfg.get('nn', 'regcoef')
   print 'learnrt:', cfg.get('nn', 'learnrt')
 
-def get_model(cfg, token2int, max_input_len, classes):
+def get_model(
+  cfg,
+  token2int,
+  max_input_len,
+  classes,
+  activation):
   """Model definition"""
 
   model = Sequential()
@@ -65,7 +72,7 @@ def get_model(cfg, token2int, max_input_len, classes):
   model.add(Dense(
     units=classes,
     kernel_regularizer=regularizers.l2(reg_coef)))
-  model.add(Activation('softmax'))
+  model.add(Activation(activation))
 
   return model
 
@@ -82,7 +89,7 @@ def get_embeddings(cfg, token2int):
 
   return init_vectors
 
-def run_cross_validation(disease, judgement):
+def run_cross_validation(disease, judgement='intuitive'):
   """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -115,7 +122,12 @@ def run_cross_validation(disease, judgement):
     test_x = x[test_indices]
     test_y = y[test_indices]
 
-    model = get_model(cfg, dataset.token2int, maxlen, classes)
+    model = get_model(
+      cfg,
+      dataset.token2int,
+      maxlen,
+      classes,
+      'softmax')
     optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
     model.compile(loss='categorical_crossentropy',
                   optimizer=optimizer,
@@ -143,7 +155,7 @@ def run_cross_validation(disease, judgement):
   print 'average f1:', np.mean(cv_scores)
   print 'standard deviation:', np.std(cv_scores)
 
-def run_evaluation(disease, judgement):
+def run_evaluation(disease, judgement='intuitive'):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -186,7 +198,8 @@ def run_evaluation(disease, judgement):
     cfg,
     train_data_provider.token2int,
     maxlen,
-    classes)
+    classes,
+    'softmax')
   optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
   model.compile(loss='categorical_crossentropy',
                 optimizer=optimizer,
@@ -213,7 +226,7 @@ def run_evaluation(disease, judgement):
 
   return f1
 
-def run_evaluation_all_diseases(judgement):
+def run_evaluation_all_diseases(judgement='intuitive'):
   """Evaluate classifier performance for all 16 comorbidities"""
 
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
@@ -230,6 +243,82 @@ def run_evaluation_all_diseases(judgement):
 
   print 'average f1 =', np.mean(f1s)
 
+def run_joint_evaluation(exclude, judgement='intuitive'):
+  """Predict all comorbidities in one pass"""
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  print_config(cfg)
+  base = os.environ['DATA_ROOT']
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  test_data = os.path.join(base, cfg.get('data', 'test_data'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+
+  # load training data first
+  train_data_provider = DatasetProvider(
+    train_data,
+    train_annot,
+    disease=None,
+    judgement=judgement,
+    use_pickled_alphabet=False,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_train, y_train = train_data_provider.load_vectorized(exclude)
+
+  classes = len(y_train[0])
+  maxlen = max([len(seq) for seq in x_train])
+  x_train = pad_sequences(x_train, maxlen=maxlen)
+  y_train = np.array(y_train);
+
+  # now load the test set
+  test_data_provider = DatasetProvider(
+    test_data,
+    test_annot,
+    disease=None,
+    judgement=judgement,
+    use_pickled_alphabet=True,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_test, y_test = test_data_provider.load_vectorized(exclude) # pass maxlen
+  x_test = pad_sequences(x_test, maxlen=maxlen)
+  y_test = np.array(y_test)
+
+  print 'test shape:', x_test.shape, y_test.shape
+  print 'train shape:', x_train.shape, y_train.shape
+
+  model = get_model(
+    cfg,
+    train_data_provider.token2int,
+    maxlen,
+    classes,
+    'sigmoid')
+  optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
+  model.compile(loss='binary_crossentropy',
+                optimizer=optimizer,
+                metrics=['accuracy'])
+  model.fit(x_train,
+            y_train,
+            epochs=cfg.getint('nn', 'epochs'),
+            batch_size=cfg.getint('nn', 'batch'),
+            validation_split=0.0,
+            verbose=1)
+
+  # probability for each class; (test size, num of classes)
+  distribution = model.predict(
+    x_test,
+    batch_size=cfg.getint('nn', 'batch'))
+
+  # turn into an indicator matrix
+  distribution[distribution < 0.5] = 0
+  distribution[distribution >= 0.5] = 1
+
+  f1 = f1_score(y_test, distribution, average='macro')
+  precision = precision_score(y_test, distribution, average='macro')
+  recall = recall_score(y_test, distribution, average='macro')
+  print 'macro average p =', precision
+  print 'macro average r =', recall
+  print 'macro average f1 =', f1
+
 if __name__ == "__main__":
 
-  run_evaluation_all_diseases('intuitive')
+  exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
+  run_joint_evaluation(exclude=exclude)
