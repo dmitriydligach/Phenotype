@@ -9,7 +9,8 @@ import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
 
 ALPHABET_FILE = 'Model/alphabet.txt'
-ALPHABET_PICKLE = 'Model/alphabet.p'
+# ALPHABET_PICKLE = 'Model/alphabet.p'
+ALPHABET_PICKLE = '../Codes/Model/alphabet.p'
 
 class DatasetProvider:
   """Comorboditiy data loader"""

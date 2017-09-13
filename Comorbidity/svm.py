@@ -10,6 +10,9 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from keras.preprocessing.sequence import pad_sequences
+from keras.models import load_model
+from keras.models import Model
 from dataset import DatasetProvider
 import i2b2
 
@@ -119,6 +122,69 @@ def run_evaluation(disease, judgement):
 
   return f1
 
+def run_evaluation_learned_rep(disease, judgement='intuitive'):
+  """Use pre-trained patient representations"""
+
+  cfg = ConfigParser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  test_data = os.path.join(base, cfg.get('data', 'test_data'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+
+  # load training data first
+  train_data_provider = DatasetProvider(
+    train_data,
+    train_annot,
+    disease,
+    judgement,
+    use_pickled_alphabet=True,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_train, y_train = train_data_provider.load()
+
+  classes = len(train_data_provider.label2int)
+  # maxlen = max([len(seq) for seq in x_train])
+  maxlen = cfg.getint('data', 'maxlen')
+  x_train = pad_sequences(x_train, maxlen=maxlen)
+  print 'x shape (original):', x_train.shape
+
+  # make vectors for target task
+  model = load_model(cfg.get('data', 'model_file'))
+  interm_layer_model = Model(
+    inputs=model.input,
+    outputs=model.get_layer('HL').output)
+  x_train = interm_layer_model.predict(x_train)
+  print 'x shape (new):', x_train.shape
+
+  # now load the test set
+  test_data_provider = DatasetProvider(
+    test_data,
+    test_annot,
+    disease,
+    judgement,
+    use_pickled_alphabet=True,
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_test, y_test = test_data_provider.load() # pass maxle
+  x_test = pad_sequences(x_test, maxlen=maxlen)
+  print 'x shape (original):', x_test.shape
+
+  # make vectors for target task
+  model = load_model(cfg.get('data', 'model_file'))
+  interm_layer_model = Model(
+    inputs=model.input,
+    outputs=model.get_layer('HL').output)
+  x_test = interm_layer_model.predict(x_test)
+  print 'x shape (new):', x_test.shape
+
+  classifier = LinearSVC(class_weight='balanced')
+  model = classifier.fit(x_train, y_train)
+  predicted = classifier.predict(x_test)
+  f1 = f1_score(y_test, predicted, average='macro')
+  print '%s: f1 = %.3f' % (disease, f1)
+
+  return f1
+
 def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
@@ -132,6 +198,7 @@ def run_evaluation_all_diseases(judgement):
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
     f1 = run_evaluation(disease, judgement)
+    # f1 = run_evaluation_learned_rep(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', numpy.mean(f1s)
