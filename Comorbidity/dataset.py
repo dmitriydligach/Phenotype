@@ -9,8 +9,6 @@ import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
 
 ALPHABET_FILE = 'Model/alphabet.txt'
-# ALPHABET_PICKLE = 'Model/alphabet.p'
-ALPHABET_PICKLE = '../Codes/Model/alphabet.p'
 
 class DatasetProvider:
   """Comorboditiy data loader"""
@@ -21,6 +19,7 @@ class DatasetProvider:
                disease=None,
                judgement='intuitive',
                use_pickled_alphabet=False,
+               alphabet_pickle=None,
                min_token_freq=0):
     """Index words by frequency in a file"""
 
@@ -29,6 +28,7 @@ class DatasetProvider:
     self.min_token_freq = min_token_freq
     self.disease = disease
     self.judgement = judgement
+    self.alphabet_pickle = alphabet_pickle
 
     self.label2int = {'No':0, 'Yes':1}
     self.token2int = {}
@@ -36,7 +36,8 @@ class DatasetProvider:
     # when training, make alphabet and pickle it
     # when testing, load it from pickle
     if use_pickled_alphabet:
-      pkl = open(ALPHABET_PICKLE, 'rb')
+      print 'reading alphabet from', alphabet_pickle
+      pkl = open(alphabet_pickle, 'rb')
       self.token2int = pickle.load(pkl)
     else:
       self.make_token_alphabet()
@@ -63,7 +64,7 @@ class DatasetProvider:
         index = index + 1
 
     # pickle alphabet
-    pickle_file = open(ALPHABET_PICKLE, 'wb')
+    pickle_file = open(self.alphabet_pickle, 'wb')
     pickle.dump(self.token2int, pickle_file)
 
   def load(self, maxlen=float('inf')):

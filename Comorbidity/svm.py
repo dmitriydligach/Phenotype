@@ -72,7 +72,7 @@ def run_cross_validation(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation(disease, judgement):
+def run_evaluation(disease, judgement='intuitive'):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -88,7 +88,9 @@ def run_evaluation(disease, judgement):
     train_data,
     train_annot,
     disease,
-    judgement)
+    judgement,
+    use_pickled_alphabet=False,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
   x_train, y_train = train_data_provider.load_raw()
 
   vectorizer = CountVectorizer(
@@ -107,7 +109,9 @@ def run_evaluation(disease, judgement):
     test_data,
     test_annot,
     disease,
-    judgement)
+    judgement,
+    use_pickled_alphabet=True,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
   x_test, y_test = test_data_provider.load_raw()
 
   test_count_matrix = vectorizer.transform(x_test)
@@ -138,16 +142,16 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
     train_data,
     train_annot,
     disease,
-    judgement,
+    judgement='intuitive',
     use_pickled_alphabet=True,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
     min_token_freq=cfg.getint('args', 'min_token_freq'))
   x_train, y_train = train_data_provider.load()
 
   classes = len(train_data_provider.label2int)
-  # maxlen = max([len(seq) for seq in x_train])
   maxlen = cfg.getint('data', 'maxlen')
   x_train = pad_sequences(x_train, maxlen=maxlen)
-  print 'x shape (original):', x_train.shape
+  print 'x_train shape (original):', x_train.shape
 
   # make vectors for target task
   model = load_model(cfg.get('data', 'model_file'))
@@ -155,7 +159,7 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
     inputs=model.input,
     outputs=model.get_layer('HL').output)
   x_train = interm_layer_model.predict(x_train)
-  print 'x shape (new):', x_train.shape
+  print 'x_train shape (new):', x_train.shape
 
   # now load the test set
   test_data_provider = DatasetProvider(
@@ -164,10 +168,11 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
     disease,
     judgement,
     use_pickled_alphabet=True,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
     min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_test, y_test = test_data_provider.load() # pass maxle
+  x_test, y_test = test_data_provider.load() # pass maxlen
   x_test = pad_sequences(x_test, maxlen=maxlen)
-  print 'x shape (original):', x_test.shape
+  print 'x_test shape (original):', x_test.shape
 
   # make vectors for target task
   model = load_model(cfg.get('data', 'model_file'))
@@ -175,7 +180,7 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
     inputs=model.input,
     outputs=model.get_layer('HL').output)
   x_test = interm_layer_model.predict(x_test)
-  print 'x shape (new):', x_test.shape
+  print 'x_test shape (new):', x_test.shape
 
   classifier = LinearSVC(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
@@ -197,8 +202,8 @@ def run_evaluation_all_diseases(judgement):
 
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    f1 = run_evaluation(disease, judgement)
-    # f1 = run_evaluation_learned_rep(disease, judgement)
+    # f1 = run_evaluation(disease, judgement)
+    f1 = run_evaluation_learned_rep(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', numpy.mean(f1s)
