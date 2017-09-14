@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
+import numpy
+numpy.random.seed(0)
+
 import sys
 sys.dont_write_bytecode = True
-import numpy, ConfigParser, os
+import ConfigParser, os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
@@ -122,7 +125,7 @@ def run_evaluation(disease, judgement='intuitive'):
   predictions = classifier.predict(test_tfidf_matrix)
 
   f1 = f1_score(y_test, predictions, average='macro')
-  print '%s: f1 = %.3f' % (disease, f1)
+  print '%s: f1 = %.3f\n' % (disease, f1)
 
   return f1
 
@@ -137,12 +140,18 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
   test_data = os.path.join(base, cfg.get('data', 'test_data'))
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
+  # load pre-trained model
+  model = load_model(cfg.get('data', 'model_file'))
+  interm_layer_model = Model(
+    inputs=model.input,
+    outputs=model.get_layer('HL').output)
+
   # load training data first
   train_data_provider = DatasetProvider(
     train_data,
     train_annot,
     disease,
-    judgement='intuitive',
+    judgement,
     use_pickled_alphabet=True,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
     min_token_freq=cfg.getint('args', 'min_token_freq'))
@@ -151,15 +160,11 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
   classes = len(train_data_provider.label2int)
   maxlen = cfg.getint('data', 'maxlen')
   x_train = pad_sequences(x_train, maxlen=maxlen)
-  print 'x_train shape (original):', x_train.shape
 
-  # make vectors for target task
-  model = load_model(cfg.get('data', 'model_file'))
-  interm_layer_model = Model(
-    inputs=model.input,
-    outputs=model.get_layer('HL').output)
+  # make training vectors for target task
+  print 'original x_train shape:', x_train.shape
   x_train = interm_layer_model.predict(x_train)
-  print 'x_train shape (new):', x_train.shape
+  print 'new x_train shape:', x_train.shape
 
   # now load the test set
   test_data_provider = DatasetProvider(
@@ -170,23 +175,19 @@ def run_evaluation_learned_rep(disease, judgement='intuitive'):
     use_pickled_alphabet=True,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
     min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_test, y_test = test_data_provider.load() # pass maxlen
+  x_test, y_test = test_data_provider.load()
   x_test = pad_sequences(x_test, maxlen=maxlen)
-  print 'x_test shape (original):', x_test.shape
 
-  # make vectors for target task
-  model = load_model(cfg.get('data', 'model_file'))
-  interm_layer_model = Model(
-    inputs=model.input,
-    outputs=model.get_layer('HL').output)
+  # make test vectors for target task
+  print 'original x_test shape:', x_test.shape
   x_test = interm_layer_model.predict(x_test)
-  print 'x_test shape (new):', x_test.shape
+  print 'new x_test shape:', x_test.shape
 
-  classifier = LinearSVC(class_weight='balanced')
+  classifier = LinearSVC(class_weight='balanced', C=1)
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict(x_test)
   f1 = f1_score(y_test, predicted, average='macro')
-  print '%s: f1 = %.3f' % (disease, f1)
+  print '%s: f1 = %.3f\n' % (disease, f1)
 
   return f1
 
