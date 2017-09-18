@@ -30,7 +30,7 @@ NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
 
-def run_cross_validation(disease, judgement):
+def run_cross_validation_cuis(disease, judgement):
   """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -75,7 +75,7 @@ def run_cross_validation(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation(disease, judgement='intuitive'):
+def run_evaluation_cuis(disease, judgement='intuitive'):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -129,7 +129,7 @@ def run_evaluation(disease, judgement='intuitive'):
 
   return f1
 
-def run_evaluation_learned_rep(disease, judgement='intuitive'):
+def run_evaluation_transfer(disease, judgement='intuitive'):
   """Use pre-trained patient representations"""
 
   cfg = ConfigParser.ConfigParser()
@@ -199,11 +199,11 @@ def run_evaluation_all_diseases(judgement):
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  train_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    f1 = run_evaluation_learned_rep(disease, judgement)
+    f1 = run_evaluation_cuis(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', numpy.mean(f1s)

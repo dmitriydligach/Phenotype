@@ -3,13 +3,25 @@
 import sys
 sys.dont_write_bytecode = True
 import xml.etree.ElementTree as et
-import os.path
+import os.path, glob
 
 # map labels so this is a binary task
 to_binary = {'Y': 'Yes', 'N': 'No', 'Q': 'No', 'U': 'No'}
 to_int = {'Y': 1, 'N': 0, 'Q': 0, 'U': 0}
 
-def parse_standoff(xml, disease, task):
+def parse_standoff(pattern, disease, task):
+  """Make patient to class mappings for multiple files"""
+
+  doc2label = {} # key: doc id, value: label
+
+  for xml_file in sorted(glob.glob(pattern)):
+    print 'loading annotations from', xml_file
+    d2l = parse_standoff_file(xml_file, disease, task)
+    doc2label.update(d2l)
+
+  return doc2label
+
+def parse_standoff_file(xml, disease, task):
   """Make patient to class mapping"""
 
   doc2label = {} # key: doc id, value: label
