@@ -203,7 +203,6 @@ def run_evaluation_all_diseases(judgement):
 
   f1s = []
   for disease in i2b2.get_disease_names(train_annot, exclude):
-    # f1 = run_evaluation(disease, judgement)
     f1 = run_evaluation_learned_rep(disease, judgement)
     f1s.append(f1)
 
