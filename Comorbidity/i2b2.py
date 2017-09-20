@@ -5,10 +5,6 @@ sys.dont_write_bytecode = True
 import xml.etree.ElementTree as et
 import os.path, glob
 
-# map labels so this is a binary task
-to_binary = {'Y': 'Yes', 'N': 'No', 'Q': 'No', 'U': 'No'}
-to_int = {'Y': 1, 'N': 0, 'Q': 0, 'U': 0}
-
 def parse_standoff(pattern, disease, task):
   """Make patient to class mappings for multiple files"""
 
@@ -34,8 +30,7 @@ def parse_standoff_file(xml, disease, task):
           for doc_elem in disease_elem:
             id = doc_elem.attrib['id']
             label = doc_elem.attrib['judgment']
-            binary_label = to_binary[label]
-            doc2label[id] = binary_label
+            doc2label[id] = label
 
   return doc2label
 

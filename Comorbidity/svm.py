@@ -125,6 +125,7 @@ def run_evaluation_cuis(disease, judgement):
   predictions = classifier.predict(test_tfidf_matrix)
 
   f1 = f1_score(y_test, predictions, average='macro')
+  print 'unique labels in train:', len(set(y_train))
   print '%s: f1 = %.3f\n' % (disease, f1)
 
   return f1
@@ -157,7 +158,8 @@ def run_evaluation_transfer(disease, judgement):
     min_token_freq=cfg.getint('args', 'min_token_freq'))
   x_train, y_train = train_data_provider.load()
 
-  classes = len(train_data_provider.label2int)
+  classes = len(set(y_train))
+  print 'unique labels in train:', classes
   maxlen = cfg.getint('data', 'maxlen')
   x_train = pad_sequences(x_train, maxlen=maxlen)
 
@@ -194,15 +196,15 @@ def run_evaluation_transfer(disease, judgement):
 def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
-  exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
+  exclude = set()
 
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  train_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   f1s = []
-  for disease in i2b2.get_disease_names(train_annot, exclude):
+  for disease in i2b2.get_disease_names(test_annot, exclude):
     f1 = run_evaluation_cuis(disease, judgement)
     f1s.append(f1)
 

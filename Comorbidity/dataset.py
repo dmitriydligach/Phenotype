@@ -8,6 +8,9 @@ import numpy, pickle
 import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
 
+# can be used to turn this into a binary task
+LABEL2INT = {'Y':0, 'N':1, 'Q':2, 'U':3}
+# file to log alphabet entries for debugging
 ALPHABET_FILE = 'Model/alphabet.txt'
 
 class DatasetProvider:
@@ -30,7 +33,6 @@ class DatasetProvider:
     self.judgement = judgement
     self.alphabet_pickle = alphabet_pickle
 
-    self.label2int = {'No':0, 'Yes':1}
     self.token2int = {}
 
     # when training, make alphabet and pickle it
@@ -100,7 +102,7 @@ class DatasetProvider:
       # no labels for some documents for some reason
       if doc_id in doc2label:
         string_label = doc2label[doc_id]
-        int_label = self.label2int[string_label]
+        int_label = LABEL2INT[string_label]
         labels.append(int_label)
         examples.append(example)
       else:
@@ -175,7 +177,8 @@ class DatasetProvider:
       # no labels for some documents for some reason
       if doc_id in doc2label:
         string_label = doc2label[doc_id]
-        labels.append(string_label)
+        int_label = LABEL2INT[string_label]
+        labels.append(int_label)
         examples.append(' '.join(file_feat_list))
       else:
         no_labels.append(doc_id)
