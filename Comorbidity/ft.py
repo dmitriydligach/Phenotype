@@ -89,7 +89,7 @@ def get_embeddings(cfg, token2int):
 
   return init_vectors
 
-def run_cross_validation(disease, judgement='intuitive'):
+def run_cross_validation(disease, judgement):
   """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -155,7 +155,7 @@ def run_cross_validation(disease, judgement='intuitive'):
   print 'average f1:', np.mean(cv_scores)
   print 'standard deviation:', np.std(cv_scores)
 
-def run_evaluation(disease, judgement='intuitive'):
+def run_evaluation(disease, judgement):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -226,7 +226,7 @@ def run_evaluation(disease, judgement='intuitive'):
 
   return f1
 
-def run_evaluation_all_diseases(judgement='intuitive'):
+def run_evaluation_all_diseases(judgement):
   """Evaluate classifier performance for all 16 comorbidities"""
 
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
@@ -243,7 +243,7 @@ def run_evaluation_all_diseases(judgement='intuitive'):
 
   print 'average f1 =', np.mean(f1s)
 
-def run_joint_evaluation(exclude, judgement='intuitive'):
+def run_joint_evaluation(exclude, judgement):
   """Predict all comorbidities in one pass"""
 
   cfg = ConfigParser.ConfigParser()

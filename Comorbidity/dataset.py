@@ -16,8 +16,8 @@ class DatasetProvider:
   def __init__(self,
                corpus_path,
                annot_xml,
-               disease=None,
-               judgement='intuitive',
+               disease,
+               judgement,
                use_pickled_alphabet=False,
                alphabet_pickle=None,
                min_token_freq=0):

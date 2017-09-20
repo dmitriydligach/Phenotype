@@ -75,7 +75,7 @@ def run_cross_validation_cuis(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation_cuis(disease, judgement='intuitive'):
+def run_evaluation_cuis(disease, judgement):
   """Train on train set and evaluate on test set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -129,7 +129,7 @@ def run_evaluation_cuis(disease, judgement='intuitive'):
 
   return f1
 
-def run_evaluation_transfer(disease, judgement='intuitive'):
+def run_evaluation_transfer(disease, judgement):
   """Use pre-trained patient representations"""
 
   cfg = ConfigParser.ConfigParser()
