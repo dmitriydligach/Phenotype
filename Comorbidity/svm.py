@@ -193,7 +193,7 @@ def run_evaluation_transfer(disease, judgement):
 
   return f1
 
-def run_evaluation_all_diseases(judgement):
+def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
 
   exclude = set()
@@ -201,6 +201,7 @@ def run_evaluation_all_diseases(judgement):
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
+  judgement = cfg.get('data', 'judgement')
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   f1s = []
@@ -212,4 +213,4 @@ def run_evaluation_all_diseases(judgement):
 
 if __name__ == "__main__":
 
-  run_evaluation_all_diseases('intuitive')
+  run_evaluation_all_diseases()
