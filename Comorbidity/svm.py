@@ -202,11 +202,15 @@ def run_evaluation_all_diseases():
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   judgement = cfg.get('data', 'judgement')
+  evaluation = cfg.get('data', 'evaluation')
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
   f1s = []
   for disease in i2b2.get_disease_names(test_annot, exclude):
-    f1 = run_evaluation_cuis(disease, judgement)
+    if evaluation == 'cuis':
+      f1 = run_evaluation_cuis(disease, judgement)
+    else:
+      f1 = run_evaluation_transfer(disease, judgement)
     f1s.append(f1)
 
   print 'average f1 =', numpy.mean(f1s)
