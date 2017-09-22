@@ -78,6 +78,9 @@ def run_cross_validation_cuis(disease, judgement):
 def run_evaluation_cuis(disease, judgement):
   """Train on train set and evaluate on test set"""
 
+  print 'disease:', disease
+  print 'judgement:', judgement
+
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
@@ -124,14 +127,21 @@ def run_evaluation_cuis(disease, judgement):
   classifier.fit(train_tfidf_matrix, y_train)
   predictions = classifier.predict(test_tfidf_matrix)
 
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
   print 'unique labels in train:', len(set(y_train))
-  print '%s: f1 = %.3f\n' % (disease, f1)
+  print 'p = %.3f' % p
+  print 'r = %.3f' % r
+  print 'f1 = %.3f\n' % f1
 
-  return f1
+  return p, r, f1
 
 def run_evaluation_transfer(disease, judgement):
   """Use pre-trained patient representations"""
+
+  print 'disease:', disease
+  print 'judgement:', judgement
 
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
@@ -187,11 +197,15 @@ def run_evaluation_transfer(disease, judgement):
 
   classifier = LinearSVC(class_weight='balanced', C=1)
   model = classifier.fit(x_train, y_train)
-  predicted = classifier.predict(x_test)
-  f1 = f1_score(y_test, predicted, average='macro')
-  print '%s: f1 = %.3f\n' % (disease, f1)
+  predictions = classifier.predict(x_test)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print 'p = %.3f' % p
+  print 'r = %.3f' % r
+  print 'f1 = %.3f\n' % f1
 
-  return f1
+  return p, r, f1
 
 def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
@@ -205,14 +219,20 @@ def run_evaluation_all_diseases():
   evaluation = cfg.get('data', 'evaluation')
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
+  ps = []
+  rs = []
   f1s = []
   for disease in i2b2.get_disease_names(test_annot, exclude):
     if evaluation == 'cuis':
-      f1 = run_evaluation_cuis(disease, judgement)
+      p, r, f1 = run_evaluation_cuis(disease, judgement)
     else:
-      f1 = run_evaluation_transfer(disease, judgement)
+      p, r, f1 = run_evaluation_transfer(disease, judgement)
+    ps.append(p)
+    rs.append(r)
     f1s.append(f1)
 
+  print 'average p =', numpy.mean(ps)
+  print 'average r =', numpy.mean(rs)
   print 'average f1 =', numpy.mean(f1s)
 
 if __name__ == "__main__":
