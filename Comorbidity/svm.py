@@ -30,7 +30,7 @@ NUM_FOLDS = 5
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
 
-def run_cross_validation_cuis(disease, judgement):
+def run_cross_validation_sparse(disease, judgement):
   """Run n-fold CV on training set"""
 
   cfg = ConfigParser.ConfigParser()
@@ -75,7 +75,7 @@ def run_cross_validation_cuis(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation_cuis(disease, judgement):
+def run_evaluation_sparse(disease, judgement):
   """Train on train set and evaluate on test set"""
 
   print 'disease:', disease
@@ -98,6 +98,7 @@ def run_evaluation_cuis(disease, judgement):
     use_pickled_alphabet=False,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
   x_train, y_train = train_data_provider.load_raw()
+  print 'train examples:', len(x_train)
 
   vectorizer = CountVectorizer(
     ngram_range=NGRAM_RANGE,
@@ -119,6 +120,7 @@ def run_evaluation_cuis(disease, judgement):
     use_pickled_alphabet=True,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
   x_test, y_test = test_data_provider.load_raw()
+  print 'test examples:', len(x_test)
 
   test_count_matrix = vectorizer.transform(x_test)
   test_tfidf_matrix = tf.transform(test_count_matrix)
@@ -137,7 +139,7 @@ def run_evaluation_cuis(disease, judgement):
 
   return p, r, f1
 
-def run_evaluation_transfer(disease, judgement):
+def run_evaluation_dense(disease, judgement):
   """Use pre-trained patient representations"""
 
   print 'disease:', disease
@@ -223,10 +225,10 @@ def run_evaluation_all_diseases():
   rs = []
   f1s = []
   for disease in i2b2.get_disease_names(test_annot, exclude):
-    if evaluation == 'cuis':
-      p, r, f1 = run_evaluation_cuis(disease, judgement)
+    if evaluation == 'sparse':
+      p, r, f1 = run_evaluation_sparse(disease, judgement)
     else:
-      p, r, f1 = run_evaluation_transfer(disease, judgement)
+      p, r, f1 = run_evaluation_dense(disease, judgement)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)
