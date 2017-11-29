@@ -13,6 +13,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
@@ -75,7 +76,7 @@ def run_cross_validation_sparse(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation_sparse(disease, judgement):
+def run_evaluation_sparse(disease, judgement, svd=False):
   """Train on train set and evaluate on test set"""
 
   print 'disease:', disease
@@ -124,6 +125,11 @@ def run_evaluation_sparse(disease, judgement):
 
   test_count_matrix = vectorizer.transform(x_test)
   test_tfidf_matrix = tf.transform(test_count_matrix)
+
+  if svd:
+    svd = TruncatedSVD(n_components=300)
+    train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
+    test_tfidf_matrix = svd.transform(test_tfidf_matrix)
 
   classifier = LinearSVC(class_weight='balanced', C=1)
   classifier.fit(train_tfidf_matrix, y_train)
