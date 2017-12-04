@@ -139,7 +139,7 @@ class DatasetProvider:
         self.code2int[code] = index
         index = index + 1
 
-  def load(self, maxlen=float('inf')):
+  def load(self, maxlen=float('inf'), tokens_as_set=True):
     """Convert examples into lists of indices"""
 
     codes = []    # each example has multiple codes
@@ -168,9 +168,12 @@ class DatasetProvider:
       codes.append(code_vec)
 
       # represent this example as a list of ints
-      # TODO: using a list of unique integers
       example = []
-      for token in set(file_ngram_list):
+
+      if tokens_as_set:
+        file_ngram_list = set(file_ngram_list)
+
+      for token in file_ngram_list:
         if token in self.token2int:
           example.append(self.token2int[token])
         else:
