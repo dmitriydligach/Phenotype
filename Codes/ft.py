@@ -32,25 +32,25 @@ def print_config(cfg):
   if cfg.has_option('data', 'embed'):
     print 'embeddings:', cfg.get('data', 'embed')
   print 'test_size', cfg.getfloat('args', 'test_size')
-  print 'batch:', cfg.get('nn', 'batch')
-  print 'epochs:', cfg.get('nn', 'epochs')
-  print 'embdims:', cfg.get('nn', 'embdims')
-  print 'hidden:', cfg.get('nn', 'hidden')
-  print 'learnrt:', cfg.get('nn', 'learnrt')
+  print 'batch:', cfg.get('dan', 'batch')
+  print 'epochs:', cfg.get('dan', 'epochs')
+  print 'embdims:', cfg.get('dan', 'embdims')
+  print 'hidden:', cfg.get('dan', 'hidden')
+  print 'learnrt:', cfg.get('dan', 'learnrt')
 
 def get_model(cfg, init_vectors, num_of_features):
   """Model definition"""
 
   model = Sequential()
   model.add(Embedding(input_dim=num_of_features,
-                      output_dim=cfg.getint('nn', 'embdims'),
+                      output_dim=cfg.getint('dan', 'embdims'),
                       input_length=maxlen,
                       trainable=True,
                       weights=init_vectors,
                       name='EL'))
   model.add(GlobalAveragePooling1D(name='AL'))
 
-  model.add(Dense(cfg.getint('nn', 'hidden'), name='HL'))
+  model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
   model.add(Activation('relu'))
 
   model.add(Dense(classes))
@@ -102,14 +102,14 @@ if __name__ == "__main__":
   print 'number of labels:', len(dataset.code2int)
 
   model = get_model(cfg, init_vectors, len(dataset.token2int))
-  optimizer = RMSprop(lr=cfg.getfloat('nn', 'learnrt'))
+  optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
-            epochs=cfg.getint('nn', 'epochs'),
-            batch_size=cfg.getint('nn', 'batch'),
+            epochs=cfg.getint('dan', 'epochs'),
+            batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0)
 
   model.save(MODEL_FILE)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     exit()
 
   # probability for each class; (test size, num of classes)
-  distribution = model.predict(test_x, batch_size=cfg.getint('nn', 'batch'))
+  distribution = model.predict(test_x, batch_size=cfg.getint('dan', 'batch'))
 
   # turn into an indicator matrix
   distribution[distribution < 0.5] = 0
