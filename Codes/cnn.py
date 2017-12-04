@@ -22,8 +22,8 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 import dataset, word2vec
 
-RESULTS_FILE = 'Model/results.txt'
-MODEL_FILE = 'Model/model.h5'
+RESULTS_FILE = 'CNNModel/results.txt'
+MODEL_FILE = 'CNNModel/model.h5'
 
 def print_config(cfg):
   """Print configuration settings"""
