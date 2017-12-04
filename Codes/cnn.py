@@ -79,7 +79,7 @@ if __name__ == "__main__":
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'))
-  x, y = dataset.load()
+  x, y = dataset.load(tokens_as_set=False)
   train_x, test_x, train_y, test_y = train_test_split(
     x,
     y,
