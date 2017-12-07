@@ -28,21 +28,6 @@ class TrainSVD:
       if len(file_feat_list) < max_tokens_in_file:
         self.samples.append(' '.join(file_feat_list))
 
-  def train_old(self):
-    """Turn into a lower dimensional matrix"""
-
-    vectorizer = CountVectorizer(ngram_range=(1, 1), min_df=0)
-    train_count_matrix = vectorizer.fit_transform(self.samples)
-    pickle.dump(vectorizer, open('Model/cv.p', 'wb'))
-
-    tf = TfidfTransformer()
-    train_tfidf_matrix = tf.fit_transform(train_count_matrix)
-    pickle.dump(tf, open('Model/tf.p', 'wb'))
-
-    svd = TruncatedSVD(n_components=1000)
-    svd.fit(train_tfidf_matrix)
-    pickle.dump(svd, open('Model/svd.p', 'wb'))
-
   def train(self):
     """Train SVD"""
 
