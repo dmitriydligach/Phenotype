@@ -76,7 +76,7 @@ def run_cross_validation_sparse(disease, judgement):
   print 'average f1:', numpy.mean(cv_scores)
   print 'standard devitation:', numpy.std(cv_scores)
 
-def run_evaluation_sparse(disease, judgement, svd=False):
+def run_evaluation_sparse(disease, judgement, use_svd=False):
   """Train on train set and evaluate on test set"""
 
   print 'disease:', disease
@@ -126,7 +126,8 @@ def run_evaluation_sparse(disease, judgement, svd=False):
   test_count_matrix = vectorizer.transform(x_test)
   test_tfidf_matrix = tf.transform(test_count_matrix)
 
-  if svd:
+  if use_svd:
+    # reduce sparse vector to 300 dimensions
     svd = TruncatedSVD(n_components=300)
     train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
     test_tfidf_matrix = svd.transform(test_tfidf_matrix)
@@ -192,7 +193,7 @@ def run_evaluation_svd(disease, judgement):
   train_tfidf_matrix = svd.transform(train_tfidf_matrix)
   test_tfidf_matrix = svd.transform(test_tfidf_matrix)
   print 'output shape:', train_tfidf_matrix.shape
-  
+
   classifier = LinearSVC(class_weight='balanced', C=1)
   classifier.fit(train_tfidf_matrix, y_train)
   predictions = classifier.predict(test_tfidf_matrix)
