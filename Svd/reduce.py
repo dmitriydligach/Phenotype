@@ -9,10 +9,11 @@ import ConfigParser, os, nltk, pandas
 import glob, string, collections, operator
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
 
 class TrainSVD:
-  """Mimic data loader"""
+  """Use SVD to train a dimensionality reduction model"""
 
   def __init__(self,
                corpus_path,
@@ -20,33 +21,38 @@ class TrainSVD:
     """Load documents as strings"""
 
     self.samples = []
-    self.corpus_path = corpus_path
-    self.max_tokens_in_file = max_tokens_in_file
 
-  def load(self):
-    """Load documents as strings"""
-
-    for f in os.listdir(self.corpus_path):
-      file_path = os.path.join(self.corpus_path, f)
+    for f in os.listdir(corpus_path):
+      file_path = os.path.join(corpus_path, f)
       file_feat_list = utils.read_cuis(file_path)
-      if len(file_feat_list) < self.max_tokens_in_file:
+      if len(file_feat_list) < max_tokens_in_file:
         self.samples.append(' '.join(file_feat_list))
 
-  def reduce(self):
+  def train_old(self):
     """Turn into a lower dimensional matrix"""
 
     vectorizer = CountVectorizer(ngram_range=(1, 1), min_df=0)
     train_count_matrix = vectorizer.fit_transform(self.samples)
-    print 'input dimensions:', train_count_matrix.shape
-    pickle.dump(vectorizer, open('cv.p', 'wb'))
+    pickle.dump(vectorizer, open('Model/cv.p', 'wb'))
 
     tf = TfidfTransformer()
     train_tfidf_matrix = tf.fit_transform(train_count_matrix)
-    pickle.dump(tf, open('tf.p', 'wb'))
+    pickle.dump(tf, open('Model/tf.p', 'wb'))
 
     svd = TruncatedSVD(n_components=1000)
     svd.fit(train_tfidf_matrix)
-    pickle.dump(svd, open('svd.p', 'wb'))
+    pickle.dump(svd, open('Model/svd.p', 'wb'))
+
+  def train(self):
+    """Train SVD"""
+
+    vectorizer = TfidfVectorizer(ngram_range=(1, 1), min_df=0)
+    tfidf_matrix = vectorizer.fit_transform(self.samples)
+    pickle.dump(vectorizer, open('Model/tfidf.p', 'wb'))
+
+    svd = TruncatedSVD(n_components=1000)
+    svd.fit(tfidf_matrix)
+    pickle.dump(svd, open('Model/svd.p', 'wb'))
 
 if __name__ == "__main__":
 
@@ -55,5 +61,4 @@ if __name__ == "__main__":
   data_dir = os.path.join(base, path)
 
   dataset = TrainSVD(data_dir, 10000)
-  dataset.load()
-  dataset.reduce()
+  dataset.train()
