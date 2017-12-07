@@ -5,7 +5,7 @@ numpy.random.seed(0)
 
 import sys
 sys.dont_write_bytecode = True
-import ConfigParser, os
+import ConfigParser, os, pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
@@ -108,9 +108,13 @@ def run_evaluation_sparse(disease, judgement, svd=False):
     vocabulary=None,
     binary=False)
   train_count_matrix = vectorizer.fit_transform(x_train)
+  #vectorizer = pickle.load(open('../SVD/cv.p', 'rb'))
+  #train_count_matrix = vectorizer.transform(x_train)
 
-  tf = TfidfTransformer()
-  train_tfidf_matrix = tf.fit_transform(train_count_matrix)
+  #tf = TfidfTransformer()
+  #train_tfidf_matrix = tf.fit_transform(train_count_matrix)
+  tf = pickle.load(open('../SVD/tf.p', 'rb'))
+  train_tfidf_matrix = tf.transform(train_count_matrix)
 
   # now handle the test set
   test_data_provider = DatasetProvider(
@@ -127,9 +131,13 @@ def run_evaluation_sparse(disease, judgement, svd=False):
   test_tfidf_matrix = tf.transform(test_count_matrix)
 
   if svd:
-    svd = TruncatedSVD(n_components=300)
-    train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
-    test_tfidf_matrix = svd.transform(test_tfidf_matrix)
+    # svd = TruncatedSVD(n_components=300)
+    # train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
+    # test_tfidf_matrix = svd.transform(test_tfidf_matrix)
+
+    svd_model = pickle.load(open('../SVD/svd.p', 'rb'))
+    train_tfidf_matrix = svd_model.transform(train_tfidf_matrix)
+    test_tfidf_matrix = svd_model.transform(test_tfidf_matrix)
 
   classifier = LinearSVC(class_weight='balanced', C=1)
   classifier.fit(train_tfidf_matrix, y_train)
