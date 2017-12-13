@@ -206,6 +206,8 @@ def run_evaluation_svd(disease, judgement):
   print 'r = %.3f' % r
   print 'f1 = %.3f\n' % f1
 
+  print '%.3f & %.3f & %.3f\n' % (p, r, f1)
+
   return p, r, f1
 
 def run_evaluation_dense(disease, judgement):

@@ -31,7 +31,7 @@ class TrainSVD:
   def train(self):
     """Train SVD"""
 
-    vectorizer = TfidfVectorizer(ngram_range=(1, 1), min_df=10)
+    vectorizer = TfidfVectorizer(ngram_range=(1, 1))
     tfidf_matrix = vectorizer.fit_transform(self.samples)
     pickle.dump(vectorizer, open('Model/tfidf.p', 'wb'))
 
