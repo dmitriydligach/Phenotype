@@ -8,6 +8,7 @@ import os, numpy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score
@@ -33,27 +34,32 @@ def load(path):
 
   return examples, labels
 
-def roc():
+def roc(positive_class='Yes'):
   """Get ROC curve"""
 
   train_examples, train_labels = load(train_path)
   test_examples, test_labels = load(test_path)
 
+  labelEncoder = LabelEncoder()
+  labelEncoder.fit(train_labels)
+  y_train = labelEncoder.transform(train_labels)
+  y_test = labelEncoder.transform(test_labels)
+  pos_class_ind = labelEncoder.transform([positive_class])[0]
+
   vectorizer = TfidfVectorizer()
-  train_tfidf_matrix = vectorizer.fit_transform(train_examples)
-  test_tfidf_matrix = vectorizer.transform(test_examples)
+  train_x = vectorizer.fit_transform(train_examples)
+  test_x = vectorizer.transform(test_examples)
 
   classifier = LogisticRegression(class_weight='balanced')
-  model = classifier.fit(train_tfidf_matrix, train_labels)
+  model = classifier.fit(train_x, y_train)
+  predicted = classifier.predict_proba(test_x)
 
-  predicted = classifier.predict_proba(test_tfidf_matrix)
+  roc_auc = roc_auc_score(y_test, predicted[:, pos_class_ind])
 
-  binary_labels = numpy.array(test_labels) == 'Yes'
-  roc_auc = roc_auc_score(binary_labels, predicted[:, 1])
   print 'roc auc:', roc_auc
 
-def svm():
-  """Train SVM"""
+def f1():
+  """Train SVM and compute p, r, and f1"""
 
   train_examples, train_labels = load(train_path)
   test_examples, test_labels = load(test_path)
@@ -69,6 +75,7 @@ def svm():
   precision = precision_score(test_labels, predicted, pos_label='Yes')
   recall = recall_score(test_labels, predicted, pos_label='Yes')
   f1 = f1_score(test_labels, predicted, pos_label='Yes')
+
   print 'p =', precision
   print 'r =', recall
   print 'f1 =', f1
