@@ -11,8 +11,11 @@ import ConfigParser, os, numpy
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
 import keras as k
 from keras.preprocessing.sequence import pad_sequences
@@ -70,6 +73,14 @@ def run_eval():
   print 'p = %.3f' % p
   print 'r = %.3f' % r
   print 'f1 = %.3f\n' % f1
+
+  classifier = LogisticRegression(class_weight='balanced')
+  model = classifier.fit(x_train, y_train)
+  predicted = classifier.predict_proba(x_test)
+  roc_auc = roc_auc_score(y_test, predicted[:, 1])
+
+  print 'roc auc:', roc_auc
+
 
 def run_nfold_cv():
   """N-fold cross validation"""
