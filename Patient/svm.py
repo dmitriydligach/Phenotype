@@ -41,8 +41,8 @@ def run_eval():
   dataset_provider = dataset.DatasetProvider(
     train_dir,
     cfg.get('data', 'alphabet_pickle'))
-  x_train, y_train = dataset_provider.load()
   maxlen = cfg.getint('data', 'maxlen')
+  x_train, y_train = dataset_provider.load(maxlen=maxlen)
   x_train = pad_sequences(x_train, maxlen=maxlen)
 
   # make training vectors for target task
@@ -54,8 +54,8 @@ def run_eval():
   dataset_provider = dataset.DatasetProvider(
     test_dir,
     cfg.get('data', 'alphabet_pickle'))
-  x_test, y_test = dataset_provider.load()
   maxlen = cfg.getint('data', 'maxlen')
+  x_test, y_test = dataset_provider.load(maxlen=maxlen)
   x_test = pad_sequences(x_test, maxlen=maxlen)
 
   # make test vectors for target task
@@ -70,17 +70,16 @@ def run_eval():
   r = recall_score(y_test, predictions, pos_label=1)
   f1 = f1_score(y_test, predictions, pos_label=1)
 
-  print 'p = %.3f' % p
+  print '\np = %.3f' % p
   print 'r = %.3f' % r
-  print 'f1 = %.3f\n' % f1
+  print 'f1 = %.3f' % f1
 
   classifier = LogisticRegression(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict_proba(x_test)
   roc_auc = roc_auc_score(y_test, predicted[:, 1])
 
-  print 'roc auc:', roc_auc
-
+  print 'roc auc = %.3f' % roc_auc
 
 def run_nfold_cv():
   """N-fold cross validation"""
