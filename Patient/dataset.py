@@ -6,7 +6,7 @@ sys.dont_write_bytecode = True
 import glob, string, collections, operator
 
 class DatasetProvider:
-  """THYME relation data"""
+  """ARDS phenotype"""
 
   def __init__(self,
                corpus_path,
@@ -14,7 +14,6 @@ class DatasetProvider:
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
-
     self.label2int = {'No':0, 'Yes':1}
     self.token2int = pickle.load(open(alphabet_pickle, 'rb'))
 
@@ -22,14 +21,11 @@ class DatasetProvider:
     """Return file as a list of CUIs"""
 
     infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read().lower()
+    text = open(infile).read()
 
-    # source task trained on no-polarity cuis
-    # target task sometimes includes polarity
-    # tokens = [token for token in text.split()]
     tokens = []
     for token in text.split():
-      if token.startswith('-'):
+      if token.startswith('N'):
         tokens.append(token[1:])
       else:
         tokens.append(token)
