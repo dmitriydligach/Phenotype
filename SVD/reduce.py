@@ -35,7 +35,7 @@ class TrainSVD:
     tfidf_matrix = vectorizer.fit_transform(self.samples)
     pickle.dump(vectorizer, open('Model/tfidf.p', 'wb'))
 
-    svd = TruncatedSVD(n_components=300)
+    svd = TruncatedSVD(n_components=1000)
     svd.fit(tfidf_matrix)
     pickle.dump(svd, open('Model/svd.p', 'wb'))
 
