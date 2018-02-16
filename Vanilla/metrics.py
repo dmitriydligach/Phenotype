@@ -47,12 +47,12 @@ def roc(positive_class='Yes'):
   pos_class_ind = labelEncoder.transform([positive_class])[0]
 
   vectorizer = TfidfVectorizer()
-  train_x = vectorizer.fit_transform(train_examples)
-  test_x = vectorizer.transform(test_examples)
+  x_train = vectorizer.fit_transform(train_examples)
+  x_test = vectorizer.transform(test_examples)
 
   classifier = LogisticRegression(class_weight='balanced')
-  model = classifier.fit(train_x, y_train)
-  predicted = classifier.predict_proba(test_x)
+  model = classifier.fit(x_train, y_train)
+  predicted = classifier.predict_proba(x_test)
 
   roc_auc = roc_auc_score(y_test, predicted[:, pos_class_ind])
 
