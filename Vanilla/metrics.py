@@ -15,8 +15,8 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 
-train_path = '/Users/Dima/Loyola/Data/Ards/Train/'
-test_path = '/Users/Dima/Loyola/Data/Ards/Test/'
+train_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_v2_cuis/'
+test_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_test_cuis/'
 
 def load(path):
   """Assume each subdir is a separate class"""
@@ -34,7 +34,7 @@ def load(path):
 
   return examples, labels
 
-def roc(positive_class='Yes'):
+def roc(positive_class='yes'):
   """Get ROC curve"""
 
   train_examples, train_labels = load(train_path)
@@ -50,7 +50,7 @@ def roc(positive_class='Yes'):
   x_train = vectorizer.fit_transform(train_examples)
   x_test = vectorizer.transform(test_examples)
 
-  classifier = LogisticRegression(class_weight='balanced')
+  classifier = LogisticRegression()
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict_proba(x_test)
 
@@ -58,7 +58,7 @@ def roc(positive_class='Yes'):
 
   print 'roc auc:', roc_auc
 
-def f1():
+def f1(pos_class='yes'):
   """Train SVM and compute p, r, and f1"""
 
   train_examples, train_labels = load(train_path)
@@ -72,9 +72,9 @@ def f1():
   model = classifier.fit(train_tfidf_matrix, train_labels)
   predicted = classifier.predict(test_tfidf_matrix)
 
-  precision = precision_score(test_labels, predicted, pos_label='Yes')
-  recall = recall_score(test_labels, predicted, pos_label='Yes')
-  f1 = f1_score(test_labels, predicted, pos_label='Yes')
+  precision = precision_score(test_labels, predicted, pos_label=pos_class)
+  recall = recall_score(test_labels, predicted, pos_label=pos_class)
+  f1 = f1_score(test_labels, predicted, pos_label=pos_class)
 
   print 'p =', precision
   print 'r =', recall
