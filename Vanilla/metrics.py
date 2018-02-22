@@ -6,6 +6,7 @@ sys.path.append('../Lib/')
 
 import os, numpy
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import cross_val_score
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
@@ -34,7 +35,29 @@ def load(path):
 
   return examples, labels
 
-def roc(positive_class='yes'):
+def nfoldcv(metric='f1', pos_class='yes'):
+  """Run n-fold cross-validation"""
+
+  train_examples, train_labels = load(train_path)
+
+  labelEncoder = LabelEncoder()
+  labelEncoder.fit(train_labels)
+  y_train = labelEncoder.transform(train_labels)
+  pos_class_ind = labelEncoder.transform([pos_class])[0]
+
+  vectorizer = TfidfVectorizer()
+  x_train = vectorizer.fit_transform(train_examples)
+
+  classifier = LogisticRegression()
+  cv_scores = cross_val_score(
+    classifier,
+    x_train,
+    y_train,
+    scoring=metric,
+    cv=10)
+  print 'metric (n-fold cv) = %.3f' % numpy.mean(cv_scores)
+
+def roc(pos_class='yes'):
   """Get ROC curve"""
 
   train_examples, train_labels = load(train_path)
@@ -44,19 +67,26 @@ def roc(positive_class='yes'):
   labelEncoder.fit(train_labels)
   y_train = labelEncoder.transform(train_labels)
   y_test = labelEncoder.transform(test_labels)
-  pos_class_ind = labelEncoder.transform([positive_class])[0]
+  pos_class_ind = labelEncoder.transform([pos_class])[0]
 
   vectorizer = TfidfVectorizer()
   x_train = vectorizer.fit_transform(train_examples)
   x_test = vectorizer.transform(test_examples)
 
   classifier = LogisticRegression()
+  cv_scores = cross_val_score(
+    classifier,
+    x_train,
+    y_train,
+    scoring='roc_auc',
+    cv=10)
+  print 'roc auc (n-fold cv) = %.3f' % numpy.mean(cv_scores)
+
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict_proba(x_test)
 
   roc_auc = roc_auc_score(y_test, predicted[:, pos_class_ind])
-
-  print 'roc auc:', roc_auc
+  print 'roc auc (test) = %.3f' % roc_auc
 
 def f1(pos_class='yes'):
   """Train SVM and compute p, r, and f1"""
@@ -76,11 +106,14 @@ def f1(pos_class='yes'):
   recall = recall_score(test_labels, predicted, pos_label=pos_class)
   f1 = f1_score(test_labels, predicted, pos_label=pos_class)
 
-  print 'p =', precision
-  print 'r =', recall
-  print 'f1 =', f1
+  print 'p = %.3f' % precision
+  print 'r = %.3f' % recall
+  print 'f1 = %.3f' % f1
 
 if __name__ == "__main__":
 
+  nfoldcv()
+  print
   roc()
+  print
   f1()
