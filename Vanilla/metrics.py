@@ -48,14 +48,14 @@ def nfoldcv(metric='f1', pos_class='yes'):
   vectorizer = TfidfVectorizer()
   x_train = vectorizer.fit_transform(train_examples)
 
-  classifier = LogisticRegression()
+  classifier = LogisticRegression(class_weight='balanced')
   cv_scores = cross_val_score(
     classifier,
     x_train,
     y_train,
     scoring=metric,
     cv=10)
-  print 'metric (n-fold cv) = %.3f' % numpy.mean(cv_scores)
+  print '%s (n-fold cv) = %.3f' % (metric, numpy.mean(cv_scores))
 
 def roc(pos_class='yes'):
   """Get ROC curve"""
@@ -73,15 +73,7 @@ def roc(pos_class='yes'):
   x_train = vectorizer.fit_transform(train_examples)
   x_test = vectorizer.transform(test_examples)
 
-  classifier = LogisticRegression()
-  cv_scores = cross_val_score(
-    classifier,
-    x_train,
-    y_train,
-    scoring='roc_auc',
-    cv=10)
-  print 'roc auc (n-fold cv) = %.3f' % numpy.mean(cv_scores)
-
+  classifier = LogisticRegression(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict_proba(x_test)
 
@@ -106,14 +98,12 @@ def f1(pos_class='yes'):
   recall = recall_score(test_labels, predicted, pos_label=pos_class)
   f1 = f1_score(test_labels, predicted, pos_label=pos_class)
 
-  print 'p = %.3f' % precision
-  print 'r = %.3f' % recall
-  print 'f1 = %.3f' % f1
+  print 'p (test) = %.3f' % precision
+  print 'r (test) = %.3f' % recall
+  print 'f1 (test) = %.3f' % f1
 
 if __name__ == "__main__":
 
   nfoldcv()
-  print
   roc()
-  print
   f1()
