@@ -6,7 +6,7 @@ sys.path.append('../Lib/')
 
 import os, numpy
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import roc_curve
@@ -68,7 +68,7 @@ def f1(pos_class='yes'):
   train_tfidf_matrix = vectorizer.fit_transform(train_examples)
   test_tfidf_matrix = vectorizer.transform(test_examples)
 
-  classifier = LinearSVC(class_weight='balanced')
+  classifier = LogisticRegression(class_weight='balanced')
   model = classifier.fit(train_tfidf_matrix, train_labels)
   predicted = classifier.predict(test_tfidf_matrix)
 
@@ -83,3 +83,4 @@ def f1(pos_class='yes'):
 if __name__ == "__main__":
 
   roc()
+  f1()
