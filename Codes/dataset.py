@@ -20,7 +20,8 @@ class DatasetProvider:
                code_dir,
                min_token_freq,
                max_tokens_in_file,
-               min_examples_per_code):
+               min_examples_per_code,
+               use_cuis=True):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
@@ -28,6 +29,7 @@ class DatasetProvider:
     self.min_token_freq = min_token_freq
     self.max_tokens_in_file = max_tokens_in_file
     self.min_examples_per_code = min_examples_per_code
+    self.use_cuis = use_cuis
 
     self.token2int = {}  # words indexed by frequency
     self.code2int = {}   # class to int mapping
@@ -48,7 +50,7 @@ class DatasetProvider:
     self.map_subjects_to_codes(cpt_code_file, 'CPT_NUMBER', 'cpt', 5)
     self.make_code_alphabet()
 
-  def read_ngrams(self, file_name):
+  def read_tokens(self, file_name):
     """Return file as a list of ngrams"""
 
     infile = os.path.join(self.corpus_path, file_name)
@@ -56,18 +58,13 @@ class DatasetProvider:
 
     tokens = [] # file as a list of tokens
     for token in text.split():
-      if token.isalpha():
+      if token.isalpha(): # TODO: need numeric tokens?
         tokens.append(token)
 
     if len(tokens) > self.max_tokens_in_file:
       return None
 
-    ngram_list = []
-    for bigram_as_list in nltk.ngrams(tokens, 2):
-      ngram_list.append('_'.join(bigram_as_list))
-    ngram_list.extend(tokens)
-
-    return ngram_list
+    return tokens
 
   def read_cuis(self, file_name):
     """Return file as a list of CUIs"""
@@ -86,7 +83,11 @@ class DatasetProvider:
     # count tokens in the entire corpus
     token_counts = collections.Counter()
     for file in os.listdir(self.corpus_path):
-      file_ngram_list = self.read_cuis(file)
+      file_ngram_list = None
+      if self.use_cuis:
+        file_ngram_list = self.read_cuis(file)
+      else:
+        file_ngram_list = self.read_tokens(file)
       if file_ngram_list == None:
         continue
       token_counts.update(file_ngram_list)
@@ -139,14 +140,20 @@ class DatasetProvider:
         self.code2int[code] = index
         index = index + 1
 
-  def load(self, maxlen=float('inf'), tokens_as_set=True):
+  def load(self,
+           maxlen=float('inf'),
+           tokens_as_set=True):
     """Convert examples into lists of indices"""
 
     codes = []    # each example has multiple codes
     examples = [] # int sequence represents each example
 
     for file in os.listdir(self.corpus_path):
-      file_ngram_list = self.read_cuis(file)
+      file_ngram_list = None
+      if self.use_cuis == True:
+        file_ngram_list = self.read_cuis(file)
+      else:
+        file_ngram_list = self.read_tokens(file)
       if file_ngram_list == None:
         continue # file too long
 
