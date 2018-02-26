@@ -48,7 +48,7 @@ def nfoldcv(metric='f1', pos_class='yes'):
   vectorizer = TfidfVectorizer()
   x_train = vectorizer.fit_transform(train_examples)
 
-  classifier = LogisticRegression(class_weight='balanced')
+  classifier = LogisticRegression()
   cv_scores = cross_val_score(
     classifier,
     x_train,
@@ -105,5 +105,5 @@ def f1(pos_class='yes'):
 if __name__ == "__main__":
 
   nfoldcv()
-  roc()
   f1()
+  roc()
