@@ -60,6 +60,7 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(Dense(cfg.getint('cnn', 'hidden'), name='HL'))
   model.add(Activation('relu'))
 
+  model.add(Dropout(cfg.getfloat('cnn', 'dropout')))
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
 
