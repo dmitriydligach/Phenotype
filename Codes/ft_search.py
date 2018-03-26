@@ -135,5 +135,4 @@ if __name__ == "__main__":
   model = CodePredictionModel()
   search = RandomSearch(model, x, y)
   best_config = search.optimize()
-
-  model = get_model(cfg, init_vectors, len(dataset.token2int))
+  print 'best config:', best_config
