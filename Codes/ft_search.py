@@ -34,10 +34,7 @@ class CodePredictionModel:
     self.configs = {};
 
     self.configs['batch'] = (32, 64, 128, 256)
-    self.configs['filters'] = (64, 128, 256, 512, 1024, 2048, 4096)
-    self.configs['filtlen'] = (2, 3, 4, 5)
-    self.configs['hidden'] = (500, 1000)
-    self.configs['dropout'] = (0, 0.25, 0.5)
+    self.configs['hidden'] = (100, 500, 1000, 3000)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -45,19 +42,17 @@ class CodePredictionModel:
     config = {};
 
     config['batch'] = random.choice(self.configs['batch'])
-    config['filters'] = random.choice(self.configs['filters'])
-    config['filtlen'] = random.choice(self.configs['filtlen'])
     config['hidden'] = random.choice(self.configs['hidden'])
-    config['dropout'] = random.choice(self.configs['dropout'])
 
     return config
 
-  def get_model(self, init_vectors, vocab_size, input_length, classes):
+  def get_model(self, init_vectors, vocab_size, input_length, output_units, config):
     """Model definition"""
 
     print 'vocab size:', vocab_size
     print 'input length:', input_length
-    print 'classes:', classes
+    print 'classes:', output_units
+    print 'configuration:', config
 
     cfg = ConfigParser.ConfigParser()
     cfg.read(sys.argv[1])
@@ -71,10 +66,10 @@ class CodePredictionModel:
                         name='EL'))
     model.add(GlobalAveragePooling1D(name='AL'))
 
-    model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
+    model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation('relu'))
 
-    model.add(Dense(classes))
+    model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
 
     return model
@@ -85,22 +80,21 @@ class CodePredictionModel:
     init_vectors = None
     vocab_size = train_x.max() + 1
     input_length = max([len(seq) for seq in x])
-    classes = train_y.shape[1]
+    output_units = train_y.shape[1]
 
     model = self.get_model(init_vectors,
                            vocab_size,
                            input_length,
-                           classes)
+                           output_units,
+                           config)
     model.compile(loss='binary_crossentropy',
                   optimizer=RMSprop(lr=cfg.getfloat('dan', 'learnrt')),
                   metrics=['accuracy'])
     model.fit(train_x,
               train_y,
-              epochs=cfg.getint('dan', 'epochs'),
-              batch_size=cfg.getint('dan', 'batch'),
+              epochs=epochs,
+              batch_size=config['batch'],
               validation_split=0.0)
-
-    model.save(MODEL_FILE)
 
     # probability for each class; (test size, num of classes)
     distribution = model.predict(test_x, batch_size=cfg.getint('dan', 'batch'))
@@ -109,7 +103,13 @@ class CodePredictionModel:
     distribution[distribution < 0.5] = 0
     distribution[distribution >= 0.5] = 1
 
-    return f1_score(test_y, distribution, average='macro')
+    f1 = f1_score(test_y, distribution, average='macro')
+    print 'configuration:', config
+    print 'epochs:', epochs
+    print 'f1:', f1
+    print
+    
+    return f1
 
 if __name__ == "__main__":
 
@@ -125,9 +125,8 @@ if __name__ == "__main__":
     code_file,
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'),
-    use_cuis=False)
-  x, y = dataset.load(tokens_as_set=False)
+    cfg.getint('args', 'min_examples_per_code'))
+  x, y = dataset.load()
 
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
