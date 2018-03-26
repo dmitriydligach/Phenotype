@@ -97,18 +97,18 @@ class CodePredictionModel:
               validation_split=0.0)
 
     # probability for each class; (test size, num of classes)
-    distribution = model.predict(test_x, batch_size=cfg.getint('dan', 'batch'))
+    distribution = model.predict(valid_x, batch_size=cfg.getint('dan', 'batch'))
 
     # turn into an indicator matrix
     distribution[distribution < 0.5] = 0
     distribution[distribution >= 0.5] = 1
 
-    f1 = f1_score(test_y, distribution, average='macro')
+    f1 = f1_score(valid_y, distribution, average='macro')
     print 'configuration:', config
     print 'epochs:', epochs
     print 'f1:', f1
     print
-    
+
     return f1
 
 if __name__ == "__main__":
