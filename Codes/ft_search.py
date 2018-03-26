@@ -16,7 +16,7 @@ from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation
+from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
@@ -33,8 +33,10 @@ class CodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64, 128, 256)
+    self.configs['batch'] = (32, 64, 128, 256, 512)
     self.configs['hidden'] = (100, 500, 1000, 3000)
+    self.configs['embedim'] = (100, 200, 300)
+    self.configs['dropout'] = (0, 0.25, 0.35, 0.5)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -43,6 +45,8 @@ class CodePredictionModel:
 
     config['batch'] = random.choice(self.configs['batch'])
     config['hidden'] = random.choice(self.configs['hidden'])
+    config['embedim'] = random.choice(self.configs['embedim'])
+    config['dropout'] = random.choice(self.configs['dropout'])
 
     return config
 
@@ -54,13 +58,14 @@ class CodePredictionModel:
 
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size,
-                        output_dim=cfg.getint('dan', 'embdims'),
+                        output_dim=config['embedim'],
                         input_length=input_length,
                         trainable=True,
                         weights=init_vectors,
                         name='EL'))
     model.add(GlobalAveragePooling1D(name='AL'))
 
+    model.add(Dropout(config['dropout']))
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation('relu'))
 
