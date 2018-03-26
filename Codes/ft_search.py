@@ -49,11 +49,6 @@ class CodePredictionModel:
   def get_model(self, init_vectors, vocab_size, input_length, output_units, config):
     """Model definition"""
 
-    print 'vocab size:', vocab_size
-    print 'input length:', input_length
-    print 'classes:', output_units
-    print 'configuration:', config
-
     cfg = ConfigParser.ConfigParser()
     cfg.read(sys.argv[1])
 
@@ -109,7 +104,7 @@ class CodePredictionModel:
     print 'f1:', f1
     print
 
-    return f1
+    return 1-f1
 
 if __name__ == "__main__":
 
