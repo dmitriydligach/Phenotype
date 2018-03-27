@@ -16,7 +16,7 @@ from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Dropout
+from keras.layers.core import Dense, Activation
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
@@ -36,7 +36,6 @@ class CodePredictionModel:
 
     self.configs['batch'] = (32, 64, 128, 256, 512, 1024)
     self.configs['hidden'] = (100, 500, 1000, 3000, 5000)
-    self.configs['dropout'] = (0, 0.25, 0.5)
     self.configs['lr'] = (0.0001, 0.001, 0.005, 0.01)
     self.configs['regularizer'] = (regularizers.l2(), regularizers.l1(), None)
 
@@ -47,7 +46,6 @@ class CodePredictionModel:
 
     config['batch'] = random.choice(self.configs['batch'])
     config['hidden'] = random.choice(self.configs['hidden'])
-    config['dropout'] = random.choice(self.configs['dropout'])
     config['lr'] = random.choice(self.configs['lr'])
     config['regularizer'] = random.choice(self.configs['regularizer'])
 
@@ -68,7 +66,6 @@ class CodePredictionModel:
                         name='EL'))
     model.add(GlobalAveragePooling1D(name='AL'))
 
-    model.add(Dropout(config['dropout']))
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation('relu'))
 
