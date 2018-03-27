@@ -20,6 +20,7 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
+from keras import regularizers
 import dataset, word2vec
 from random_search import RandomSearch
 
@@ -33,10 +34,11 @@ class CodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64, 128, 256, 512)
-    self.configs['hidden'] = (100, 500, 1000, 3000)
-    self.configs['embedim'] = (100, 200, 300)
-    self.configs['dropout'] = (0, 0.25, 0.35, 0.5)
+    self.configs['batch'] = (32, 64, 128, 256, 512, 1024)
+    self.configs['hidden'] = (100, 500, 1000, 3000, 5000)
+    self.configs['dropout'] = (0, 0.25, 0.5)
+    self.configs['lr'] = (0.0001, 0.001, 0.005, 0.01)
+    self.configs['regularizer'] = (regularizers.l2(), regularizers.l1(), None)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -45,8 +47,9 @@ class CodePredictionModel:
 
     config['batch'] = random.choice(self.configs['batch'])
     config['hidden'] = random.choice(self.configs['hidden'])
-    config['embedim'] = random.choice(self.configs['embedim'])
     config['dropout'] = random.choice(self.configs['dropout'])
+    config['lr'] = random.choice(self.configs['lr'])
+    config['regularizer'] = random.choice(self.configs['regularizer'])
 
     return config
 
@@ -58,7 +61,7 @@ class CodePredictionModel:
 
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size,
-                        output_dim=config['embedim'],
+                        output_dim=cfg.getint('dan', 'embdims'),
                         input_length=input_length,
                         trainable=True,
                         weights=init_vectors,
@@ -69,7 +72,7 @@ class CodePredictionModel:
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation('relu'))
 
-    model.add(Dense(output_units))
+    model.add(Dense(output_units, kernel_regularizer=config['regularizer']))
     model.add(Activation('sigmoid'))
 
     return model
@@ -88,13 +91,14 @@ class CodePredictionModel:
                            output_units,
                            config)
     model.compile(loss='binary_crossentropy',
-                  optimizer=RMSprop(lr=cfg.getfloat('dan', 'learnrt')),
+                  optimizer=RMSprop(lr=config['lr']),
                   metrics=['accuracy'])
     model.fit(train_x,
               train_y,
               epochs=epochs,
               batch_size=config['batch'],
-              validation_split=0.0)
+              validation_split=0.0,
+              verbose=0)
 
     # probability for each class; (test size, num of classes)
     distribution = model.predict(valid_x, batch_size=cfg.getint('dan', 'batch'))
