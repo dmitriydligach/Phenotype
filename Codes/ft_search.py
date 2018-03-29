@@ -88,7 +88,6 @@ class CodePredictionModel:
       embed_file = os.path.join(base, cfg.get('data', 'embed'))
       w2v = word2vec.Model(embed_file)
       init_vectors = [w2v.select_vectors(dataset.token2int)]
-    print 'embeddings:', init_vectors
 
     vocab_size = train_x.max() + 1
     input_length = max([len(seq) for seq in x])
