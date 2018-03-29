@@ -69,7 +69,7 @@ class CodePredictionModel:
     model.add(GlobalAveragePooling1D(name='AL'))
 
     model.add(Dense(config['hidden'], name='HL'))
-    model.add(Activation('relu'))
+    model.add(Activation(config['optimizer']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
