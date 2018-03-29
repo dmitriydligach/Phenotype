@@ -34,12 +34,14 @@ class CodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64, 128, 256, 512)
-    self.configs['hidden'] = (250, 500, 1000, 5000)
+    self.configs['batch'] = (32, 64, 128, 256, 512, 1024)
+    self.configs['hidden'] = (500, 1000, 5000, 10000)
     self.configs['optimizer'] = ('sgd', 'rmsprop', 'adagrad',
                                  'adadelta', 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh',
                                   'sigmoid', 'linear')
+    self.configs['embed'] = (True, False)
+    # self.configs['lr'] = (0.0001, 0.0005, 0.001, 0.005, 0.01)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -50,6 +52,8 @@ class CodePredictionModel:
     config['hidden'] = random.choice(self.configs['hidden'])
     config['optimizer'] = random.choice(self.configs['optimizer'])
     config['activation'] = random.choice(self.configs['activation'])
+    config['embed'] = random.choice(self.configs['embed'])
+    # config['lr'] = random.choice(self.configs['lr'])
 
     return config
 
@@ -69,7 +73,7 @@ class CodePredictionModel:
     model.add(GlobalAveragePooling1D(name='AL'))
 
     model.add(Dense(config['hidden'], name='HL'))
-    model.add(Activation(config['optimizer']))
+    model.add(Activation(config['activation']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
@@ -80,10 +84,11 @@ class CodePredictionModel:
     """A single eval"""
 
     init_vectors = None
-    if cfg.has_option('data', 'embed'):
+    if config['embed']:
       embed_file = os.path.join(base, cfg.get('data', 'embed'))
       w2v = word2vec.Model(embed_file)
       init_vectors = [w2v.select_vectors(dataset.token2int)]
+    print 'embeddings:', init_vectors
 
     vocab_size = train_x.max() + 1
     input_length = max([len(seq) for seq in x])
@@ -112,7 +117,7 @@ class CodePredictionModel:
     distribution[distribution >= 0.5] = 1
 
     f1 = f1_score(valid_y, distribution, average='macro')
-    print 'config: %s, epochs: %d, f1 = %.3f' % (config, epochs, f1)
+    print 'config: %s, epochs: %d, f1: %.3f' % (config, epochs, f1)
 
     return 1 - f1
 
@@ -139,5 +144,5 @@ if __name__ == "__main__":
 
   model = CodePredictionModel()
   search = RandomSearch(model, x, y)
-  best_config = search.optimize(max_iter=128)
+  best_config = search.optimize(max_iter=256)
   print 'best config:', best_config
