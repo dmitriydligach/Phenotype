@@ -72,11 +72,11 @@ class CnnCodePredictionModel:
       activation='relu'))
     model.add(GlobalMaxPooling1D())
 
-    model.add(Dropout(config['dropout']))
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation(config['activation']))
 
     model.add(Dropout(config['dropout']))
+
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
 
