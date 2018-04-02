@@ -24,11 +24,11 @@ class RandomSearch:
         for s in reversed(range(s_max+1)):
             n = int(np.ceil(B/max_iter/(s+1)*eta**s)) # initial number of configurations
             r = max_iter*eta**(-s) # initial number of iterations to run configurations for
-            print("Running s=%d, num configs=%d, num iters=%d" % (s, n, r) )
+            # print("Running s=%d, num configs=%d, num iters=%d" % (s, n, r) )
 
             #### Begin Finite Horizon Successive Halving with (n,r)
             T = [ self.model.get_random_config() for i in range(n) ]
-            print("Starting this halving iteration with %d configs" % ( len(T) ) )
+            # print("Starting this halving iteration with %d configs" % ( len(T) ) )
             for i in range(s+1):
                 # Run each of the n_i configs for r_i iterations and keep best n_i/eta
                 n_i = n*eta**(-i)

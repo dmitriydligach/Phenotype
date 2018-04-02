@@ -27,7 +27,7 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64, 128, 256, 512)
+    self.configs['batch'] = (32, 64)
     self.configs['filters'] = (64, 128, 256, 1024, 2048, 4096)
     self.configs['filtlen'] = (2, 3, 4, 5)
     self.configs['dropout'] = (0, 0.25, 0.5)
@@ -75,6 +75,7 @@ class CnnCodePredictionModel:
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation(config['activation']))
 
+    # dropout on the fully-connected layer
     model.add(Dropout(config['dropout']))
 
     model.add(Dense(output_units))
@@ -84,6 +85,8 @@ class CnnCodePredictionModel:
 
   def run_one_eval(self, train_x, train_y, valid_x, valid_y, epochs, config):
     """A single eval"""
+
+    print config
 
     init_vectors = None
     if config['embed']:
@@ -118,7 +121,8 @@ class CnnCodePredictionModel:
     distribution[distribution >= 0.5] = 1
 
     f1 = f1_score(valid_y, distribution, average='macro')
-    print 'config: %s, epochs: %d, f1: %.3f' % (config, epochs, f1)
+    # print 'f1: %.3f, config: %s, epochs: %d' % (f1, config, epochs)
+    print 'f1: %.3f after %d epochs\n' % (f1, epochs)
 
     return 1 - f1
 
