@@ -17,6 +17,12 @@ from keras.layers import Conv1D, GlobalMaxPooling1D
 import dataset, word2vec
 from random_search import RandomSearch
 
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
 
@@ -27,7 +33,7 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64)
+    self.configs['batch'] = (16, 32)
     self.configs['filters'] = (64, 128, 256, 1024, 2048, 4096)
     self.configs['filtlen'] = (2, 3, 4, 5)
     self.configs['dropout'] = (0, 0.25, 0.5)
