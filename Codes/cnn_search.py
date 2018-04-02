@@ -151,14 +151,16 @@ if __name__ == "__main__":
     use_cuis=False)
   x, y = provider.load(tokens_as_set=False)
 
-  print 'x shape:', x.shape
-  print 'y shape:', y.shape
-  print 'number of features:', len(provider.token2int)
-  print 'number of labels:', len(provider.code2int)
-
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
   y = np.array(y)
+
+  print 'x shape:', x.shape
+  print 'y shape:', y.shape
+  print 'max seq len:', maxlen
+  print 'vocab size:', x.max() + 1
+  print 'number of features:', len(provider.token2int)
+  print 'number of labels:', len(provider.code2int)
 
   model = CnnCodePredictionModel()
   search = RandomSearch(model, x, y)
