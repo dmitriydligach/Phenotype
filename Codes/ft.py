@@ -22,6 +22,12 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 import dataset, word2vec
 
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
 

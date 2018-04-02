@@ -24,6 +24,12 @@ from keras import regularizers
 import dataset, word2vec
 from random_search import RandomSearch
 
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
 
