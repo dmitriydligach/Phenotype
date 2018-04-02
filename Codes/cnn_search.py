@@ -142,14 +142,19 @@ if __name__ == "__main__":
   train_dir = os.path.join(base, cfg.get('data', 'train'))
   code_file = os.path.join(base, cfg.get('data', 'codes'))
 
-  dataset = dataset.DatasetProvider(
+  provider = dataset.DatasetProvider(
     train_dir,
     code_file,
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'),
     use_cuis=False)
-  x, y = dataset.load(tokens_as_set=False)
+  x, y = provider.load(tokens_as_set=False)
+
+  print 'x shape:', x.shape
+  print 'y shape:', y.shape
+  print 'number of features:', len(provider.token2int)
+  print 'number of labels:', len(provider.code2int)
 
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
