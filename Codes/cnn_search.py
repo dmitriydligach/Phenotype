@@ -124,6 +124,7 @@ class CnnCodePredictionModel:
 
 if __name__ == "__main__":
 
+  # fyi this is a global variable now
   cfg = ConfigParser.ConfigParser()
   cfg.read(sys.argv[1])
 
@@ -136,8 +137,9 @@ if __name__ == "__main__":
     code_file,
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
-  x, y = dataset.load()
+    cfg.getint('args', 'min_examples_per_code'),
+    use_cuis=False)
+  x, y = dataset.load(tokens_as_set=False)
 
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
