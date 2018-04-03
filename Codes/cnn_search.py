@@ -33,11 +33,11 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (16, 32)
-    self.configs['filters'] = (64, 128, 256, 1024, 2048, 4096)
+    self.configs['batch'] = (16, 32, 64)
+    self.configs['filters'] = (64, 128, 256, 512, 1024)
     self.configs['filtlen'] = (2, 3, 4, 5)
     self.configs['dropout'] = (0, 0.25, 0.5)
-    self.configs['hidden'] = (500, 1000, 5000, 10000)
+    self.configs['hidden'] = (500, 1000, 5000)
     self.configs['optimizer'] = ('sgd', 'rmsprop', 'adagrad',
                                  'adadelta', 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh',
@@ -164,5 +164,5 @@ if __name__ == "__main__":
 
   model = CnnCodePredictionModel()
   search = RandomSearch(model, x, y)
-  best_config = search.optimize(max_iter=256)
+  best_config = search.optimize(max_iter=128)
   print 'best config:', best_config
