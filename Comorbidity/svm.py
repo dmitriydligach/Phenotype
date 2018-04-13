@@ -86,7 +86,7 @@ def run_evaluation_sparse(disease, judgement, use_svd=False):
     train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
     test_tfidf_matrix = svd.transform(test_tfidf_matrix)
 
-  classifier = LinearSVC(class_weight='balanced', C=1)
+  classifier = LinearSVC(class_weight='balanced')
   classifier.fit(train_tfidf_matrix, y_train)
   predictions = classifier.predict(test_tfidf_matrix)
 
@@ -148,7 +148,7 @@ def run_evaluation_svd(disease, judgement):
   test_tfidf_matrix = svd.transform(test_tfidf_matrix)
   print 'output shape:', train_tfidf_matrix.shape
 
-  classifier = LinearSVC(class_weight='balanced', C=1)
+  classifier = LinearSVC(class_weight='balanced')
   classifier.fit(train_tfidf_matrix, y_train)
   predictions = classifier.predict(test_tfidf_matrix)
 
@@ -222,7 +222,7 @@ def run_evaluation_dense(disease, judgement):
   x_test = interm_layer_model.predict(x_test)
   print 'new x_test shape:', x_test.shape
 
-  classifier = LinearSVC(class_weight='balanced', C=1)
+  classifier = LinearSVC(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
   predictions = classifier.predict(x_test)
   p = precision_score(y_test, predictions, average='macro')
