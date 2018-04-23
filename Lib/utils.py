@@ -1,6 +1,18 @@
 import numpy as np
 import os, os.path
 
+def read_tokens(file_path):
+  """Return file as a list of ngrams"""
+
+  text = open(file_path).read().lower()
+
+  tokens = [] 
+  for token in text.split():
+    if token.isalpha():
+      tokens.append(token)
+
+  return tokens
+
 def read_cuis(file_path, ignore_negation=False):
   """Return a file as a list of CUIs"""
 
