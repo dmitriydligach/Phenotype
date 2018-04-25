@@ -74,7 +74,7 @@ class CnnCodePredictionModel:
       filters=config['filters'],
       kernel_size=config['filtlen'],
       activation='relu'))
-    model.add(GlobalMaxPooling1D(), name='MP')
+    model.add(GlobalMaxPooling1D(name='MP'))
 
     for n in range(config['layers']):
       model.add(Dense(config['hidden'], name='HL%s' % n + 1))
