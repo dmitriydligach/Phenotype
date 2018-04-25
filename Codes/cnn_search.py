@@ -33,17 +33,15 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (16, 32, 64)
-    self.configs['filters'] = (64, 128, 256, 512, 1024)
-    self.configs['filtlen'] = (2, 3, 4, 5)
-    self.configs['dropout'] = (0, 0.25, 0.5)
-    self.configs['hidden'] = (500, 1000, 5000)
-    self.configs['optimizer'] = ('sgd', 'rmsprop', 'adagrad',
-                                 'adadelta', 'adam', 'adamax', 'nadam')
-    self.configs['activation'] = ('relu', 'tanh',
-                                  'sigmoid', 'linear')
+    self.configs['batch'] = (8, 16, 32, 64)
+    self.configs['filters'] = (512, 1024, 2048)
+    self.configs['filtlen'] = (4, 5, 6, 7, 8)
+    self.configs['dropout'] = (0, 0.25, 0.5, 0.75)
+    self.configs['hidden'] = (1000, 5000)
+    self.configs['optimizer'] = ('adam', 'rmsprop', 'adagrad')
+    self.configs['activation'] = ('relu', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
-    # self.configs['lr'] = (0.0001, 0.0005, 0.001, 0.005, 0.01)
+    self.configs['layers'] = (0, 1, 2)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -58,7 +56,7 @@ class CnnCodePredictionModel:
     config['optimizer'] = random.choice(self.configs['optimizer'])
     config['activation'] = random.choice(self.configs['activation'])
     config['embed'] = random.choice(self.configs['embed'])
-    # config['lr'] = random.choice(self.configs['lr'])
+    config['layers'] = random.choice(self.configs['layers'])
 
     return config
 
@@ -76,10 +74,11 @@ class CnnCodePredictionModel:
       filters=config['filters'],
       kernel_size=config['filtlen'],
       activation='relu'))
-    model.add(GlobalMaxPooling1D())
+    model.add(GlobalMaxPooling1D(), name='MP')
 
-    model.add(Dense(config['hidden'], name='HL'))
-    model.add(Activation(config['activation']))
+    for n in range(config['layers']):
+      model.add(Dense(config['hidden'], name='HL%s' % n + 1))
+      model.add(Activation(config['activation']))
 
     # dropout on the fully-connected layer
     model.add(Dropout(config['dropout']))
@@ -164,5 +163,5 @@ if __name__ == "__main__":
 
   model = CnnCodePredictionModel()
   search = RandomSearch(model, x, y)
-  best_config = search.optimize(max_iter=128)
+  best_config = search.optimize(max_iter=64)
   print 'best config:', best_config
