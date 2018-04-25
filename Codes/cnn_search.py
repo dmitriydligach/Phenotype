@@ -65,7 +65,7 @@ class CnnCodePredictionModel:
 
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size,
-                        output_dim=300,
+                        output_dim=500,
                         input_length=input_length,
                         trainable=True,
                         weights=init_vectors,
