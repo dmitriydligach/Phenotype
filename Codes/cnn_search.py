@@ -77,7 +77,7 @@ class CnnCodePredictionModel:
     model.add(GlobalMaxPooling1D(name='MP'))
 
     for n in range(config['layers']):
-      model.add(Dense(config['hidden'], name='HL%d' % n + 1))
+      model.add(Dense(config['hidden'], name='HL%d' % (n + 1)))
       model.add(Activation(config['activation']))
 
     # dropout on the fully-connected layer
