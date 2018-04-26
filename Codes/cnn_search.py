@@ -33,11 +33,11 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (8, 16, 32, 64)
+    self.configs['batch'] = (8, 16, 32)
     self.configs['filters'] = (512, 1024, 2048)
     self.configs['filtlen'] = (4, 5, 6, 7, 8)
     self.configs['dropout'] = (0, 0.25, 0.5, 0.75)
-    self.configs['hidden'] = (1000, 5000)
+    self.configs['hidden'] = (1000, 3000)
     self.configs['optimizer'] = ('adam', 'rmsprop', 'adagrad')
     self.configs['activation'] = ('relu', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
