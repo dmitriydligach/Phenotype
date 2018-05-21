@@ -4,7 +4,7 @@ import numpy as np
 np.random.seed(1337)
 
 import sys
-sys.path.append('../../Neural/Lib/')
+sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 import ConfigParser, os
 from sklearn.metrics import f1_score
