@@ -6,7 +6,7 @@ np.random.seed(1337)
 import sys
 sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
-import ConfigParser, os
+import configparser, os
 from sklearn.metrics import f1_score
 from sklearn.model_selection import KFold
 import keras as k
@@ -24,14 +24,14 @@ import dataset, word2vec
 def print_config(cfg):
   """Print configuration settings"""
 
-  print 'train:', cfg.get('data', 'path')
+  print('train:', cfg.get('data', 'path'))
   if cfg.has_option('data', 'embed'):
-    print 'embeddings:', cfg.get('data', 'embed')
-  print 'batch:', cfg.get('nn', 'batch')
-  print 'epochs:', cfg.get('nn', 'epochs')
-  print 'embdims:', cfg.get('nn', 'embdims')
-  print 'hidden:', cfg.get('nn', 'hidden')
-  print 'learnrt:', cfg.get('nn', 'learnrt')
+    print('embeddings:', cfg.get('data', 'embed'))
+  print('batch:', cfg.get('nn', 'batch'))
+  print('epochs:', cfg.get('nn', 'epochs'))
+  print('embdims:', cfg.get('nn', 'embdims'))
+  print('hidden:', cfg.get('nn', 'hidden'))
+  print('learnrt:', cfg.get('nn', 'learnrt'))
 
 def get_model(cfg, init_vectors, num_of_features):
   """Model definition"""
@@ -57,7 +57,7 @@ def get_model(cfg, init_vectors, num_of_features):
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   print_config(cfg)
 
@@ -78,9 +78,9 @@ if __name__ == "__main__":
   maxlen = max([len(seq) for seq in x])
   x = pad_sequences(x, maxlen=maxlen)
   y = to_categorical(y, classes)
-  print 'x shape:', x.shape
-  print 'y shape:', y.shape
-  print 'number of features:', len(dataset.token2int)
+  print('x shape:', x.shape)
+  print('y shape:', y.shape)
+  print('number of features:', len(dataset.token2int))
 
   f1_scores = []
   kf = KFold(n_splits=5, shuffle=True, random_state=100)
@@ -119,5 +119,5 @@ if __name__ == "__main__":
     label_f1 = f1_score(gold, predictions, average=None)
     f1_scores.append(label_f1[1])
 
-  print 'average f1:', np.mean(f1_scores)
-  print 'standard deviation:', np.std(f1_scores)
+  print('average f1:', np.mean(f1_scores))
+  print('standard deviation:', np.std(f1_scores))

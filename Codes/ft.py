@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 np.random.seed(1337)
@@ -6,7 +6,7 @@ np.random.seed(1337)
 import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
-import ConfigParser, os
+import configparser, os
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -34,15 +34,15 @@ MODEL_FILE = 'Model/model.h5'
 def print_config(cfg):
   """Print configuration settings"""
 
-  print 'train:', cfg.get('data', 'train')
+  print('train:', cfg.get('data', 'train'))
   if cfg.has_option('data', 'embed'):
-    print 'embeddings:', cfg.get('data', 'embed')
-  print 'test_size', cfg.getfloat('args', 'test_size')
-  print 'batch:', cfg.get('dan', 'batch')
-  print 'epochs:', cfg.get('dan', 'epochs')
-  print 'embdims:', cfg.get('dan', 'embdims')
-  print 'hidden:', cfg.get('dan', 'hidden')
-  print 'learnrt:', cfg.get('dan', 'learnrt')
+    print('embeddings:', cfg.get('data', 'embed'))
+  print('test_size', cfg.getfloat('args', 'test_size'))
+  print('batch:', cfg.get('dan', 'batch'))
+  print('epochs:', cfg.get('dan', 'epochs'))
+  print('embdims:', cfg.get('dan', 'embdims'))
+  print('hidden:', cfg.get('dan', 'hidden'))
+  print('learnrt:', cfg.get('dan', 'learnrt'))
 
 def get_model(cfg, init_vectors, num_of_features):
   """Model definition"""
@@ -66,7 +66,7 @@ def get_model(cfg, init_vectors, num_of_features):
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   print_config(cfg)
 
@@ -100,12 +100,12 @@ if __name__ == "__main__":
   train_y = np.array(train_y)
   test_y = np.array(test_y)
 
-  print 'train_x shape:', train_x.shape
-  print 'train_y shape:', train_y.shape
-  print 'test_x shape:', test_x.shape
-  print 'test_y shape:', test_y.shape
-  print 'number of features:', len(dataset.token2int)
-  print 'number of labels:', len(dataset.code2int)
+  print('train_x shape:', train_x.shape)
+  print('train_y shape:', train_y.shape)
+  print('test_x shape:', test_x.shape)
+  print('test_y shape:', test_y.shape)
+  print('number of features:', len(dataset.token2int))
+  print('number of labels:', len(dataset.code2int))
 
   model = get_model(cfg, init_vectors, len(dataset.token2int))
   optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
@@ -134,12 +134,12 @@ if __name__ == "__main__":
   f1 = f1_score(test_y, distribution, average='macro')
   precision = precision_score(test_y, distribution, average='macro')
   recall = recall_score(test_y, distribution, average='macro')
-  print 'macro average p =', precision
-  print 'macro average r =', recall
-  print 'macro average f1 =', f1
+  print('macro average p =', precision)
+  print('macro average r =', recall)
+  print('macro average f1 =', f1)
 
   outf1 = open(RESULTS_FILE, 'w')
-  int2code = dict((value, key) for key, value in dataset.code2int.items())
+  int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
   f1_scores = f1_score(test_y, distribution, average=None)
   outf1.write("%s|%s\n" % ('macro', f1))
   for index, f1 in enumerate(f1_scores):

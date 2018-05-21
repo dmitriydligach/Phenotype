@@ -48,11 +48,11 @@ def roc(positive_class='Yes'):
   x_test = vectorizer.transform(test_examples)
 
   # load svd model and map train/test to low dimensions
-  print 'input shape:', x_train.shape
+  print('input shape:', x_train.shape)
   svd = pickle.load(open('../Svd/Model/svd.p', 'rb'))
   x_train = svd.transform(x_train)
   x_test = svd.transform(x_test)
-  print 'output shape:', x_train.shape
+  print('output shape:', x_train.shape)
 
   classifier = LogisticRegression(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
@@ -60,7 +60,7 @@ def roc(positive_class='Yes'):
 
   roc_auc = roc_auc_score(y_test, predicted[:, pos_class_ind])
 
-  print 'roc auc:', roc_auc
+  print('roc auc:', roc_auc)
 
 if __name__ == "__main__":
 

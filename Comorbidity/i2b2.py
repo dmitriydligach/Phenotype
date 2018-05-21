@@ -11,7 +11,7 @@ def parse_standoff(pattern, disease, task):
   doc2label = {} # key: doc id, value: label
 
   for xml_file in sorted(glob.glob(pattern)):
-    print 'loading annotations from', xml_file
+    print('loading annotations from', xml_file)
     d2l = parse_standoff_file(xml_file, disease, task)
     doc2label.update(d2l)
 
@@ -99,4 +99,4 @@ if __name__ == "__main__":
   annot_xml = os.path.join(base, xml)
 
   doc2labels = parse_standoff_vectorized(annot_xml, 'intuitive')
-  print doc2labels
+  print(doc2labels)

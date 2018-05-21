@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy
-import ConfigParser, os, nltk, pandas, sys
+import configparser, os, nltk, pandas, sys
 sys.dont_write_bytecode = True
 import glob, string, collections, operator, pickle
 
@@ -37,11 +37,11 @@ class DatasetProvider:
 
     # making token alphabet is expensive so do it once
     if not os.path.isfile(ALPHABET_PICKLE):
-      print 'making alphabet and dumping it to file...'
+      print('making alphabet and dumping it to file...')
       self.make_and_write_token_alphabet()
-    print 'retrieving alphabet from file...'
+    print('retrieving alphabet from file...')
     self.token2int = pickle.load(open(ALPHABET_PICKLE, 'rb'))
-    print 'mapping codes...'
+    print('mapping codes...')
     diag_code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
     proc_code_file = os.path.join(self.code_dir, PROC_ICD9_FILE)
     cpt_code_file = os.path.join(self.code_dir, CPT_CODE_FILE)
@@ -127,7 +127,7 @@ class DatasetProvider:
 
     # count code frequencies and write them to file
     code_counter = collections.Counter()
-    for codes in self.subj2codes.values():
+    for codes in list(self.subj2codes.values()):
       code_counter.update(codes)
     outfile = open(CODE_FREQ_FILE, 'w')
     for code, count in code_counter.most_common():
@@ -160,7 +160,7 @@ class DatasetProvider:
       # make code vector for this example
       subj_id = int(file.split('.')[0])
       if len(self.subj2codes[subj_id]) == 0:
-        print 'skipping file:', file
+        print('skipping file:', file)
         continue # no codes for this file
 
       code_vec = [0] * len(self.code2int)
@@ -195,7 +195,7 @@ class DatasetProvider:
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))

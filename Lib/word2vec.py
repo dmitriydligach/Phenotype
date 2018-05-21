@@ -11,7 +11,7 @@ def write_vectors(alphabet, weights, path):
 
   with open(path, 'w') as outfile:
     outfile.write('%s %s\n' % (len(alphabet), weights.shape[1]))
-    for word, index in alphabet.items():
+    for word, index in list(alphabet.items()):
       vector = [str(element) for element in weights[index]]
       vector_as_string = ' '.join(vector)
       outfile.write('%s %s\n' % (word, vector_as_string))
@@ -41,11 +41,11 @@ class Model:
   def select_vectors(self, alphabet):
     """Return vectors for items in alphabet"""
 
-    average = self.average_words(alphabet.keys())
+    average = self.average_words(list(alphabet.keys()))
     vecs = np.zeros((len(alphabet), self.dimensions))
 
     oov_count = 0
-    for word, index in alphabet.items():
+    for word, index in list(alphabet.items()):
       if word in self.vectors:
         vecs[index, :] = self.vectors[word]
       else:
@@ -55,7 +55,7 @@ class Model:
 
     oov_rate = float(oov_count) / len(alphabet)
     if(self.verbose == True):
-      print 'embedding oov rate: %s%%' % (round(oov_rate * 100, 2))
+      print('embedding oov rate: %s%%' % (round(oov_rate * 100, 2)))
     return vecs
 
   def average_words(self, words):

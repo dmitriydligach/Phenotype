@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 import utils
 import numpy, pickle
-import ConfigParser, os, nltk, pandas
+import configparser, os, nltk, pandas
 import glob, string, collections, operator
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer

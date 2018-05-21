@@ -21,7 +21,7 @@ class RandomSearch:
         B = (s_max+1)*max_iter  # total number of iterations (without reuse) per execution of Succesive Halving (n,r)
 
         #### Begin Finite Horizon Hyperband outlerloop. Repeat indefinetely.
-        for s in reversed(range(s_max+1)):
+        for s in reversed(list(range(s_max+1))):
             n = int(np.ceil(B/max_iter/(s+1)*eta**s)) # initial number of configurations
             r = max_iter*eta**(-s) # initial number of iterations to run configurations for
             # print("Running s=%d, num configs=%d, num iters=%d" % (s, n, r) )
@@ -35,7 +35,7 @@ class RandomSearch:
                 r_i = int( r*eta**(i) )
                 val_losses = [ self.model.run_one_eval(self.train_x, self.train_y, self.valid_x, self.valid_y, r_i, t) for t in T ]
                 T = [ T[i] for i in np.argsort(val_losses)[0:int( n_i/eta )] ]
-                print("After iteration %d T has %d configurations" % (s, len(T)))
+                print(("After iteration %d T has %d configurations" % (s, len(T))))
             #### End Finite Horizon Successive Halving with (n,r)
 
         return T[0]

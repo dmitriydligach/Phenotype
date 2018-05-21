@@ -6,7 +6,7 @@ np.random.seed(1337)
 import sys
 sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
-import ConfigParser, os, random
+import configparser, os, random
 from sklearn.metrics import f1_score
 import keras as k
 from keras.preprocessing.sequence import pad_sequences
@@ -91,7 +91,7 @@ class CnnCodePredictionModel:
   def run_one_eval(self, train_x, train_y, valid_x, valid_y, epochs, config):
     """A single eval"""
 
-    print config
+    print(config)
 
     init_vectors = None
     if config['embed']:
@@ -127,14 +127,14 @@ class CnnCodePredictionModel:
 
     f1 = f1_score(valid_y, distribution, average='macro')
     # print 'f1: %.3f, config: %s, epochs: %d' % (f1, config, epochs)
-    print 'f1: %.3f after %d epochs\n' % (f1, epochs)
+    print('f1: %.3f after %d epochs\n' % (f1, epochs))
 
     return 1 - f1
 
 if __name__ == "__main__":
 
   # fyi this is a global variable now
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
   base = os.environ['DATA_ROOT']
@@ -154,14 +154,14 @@ if __name__ == "__main__":
   x = pad_sequences(x, maxlen=maxlen)
   y = np.array(y)
 
-  print 'x shape:', x.shape
-  print 'y shape:', y.shape
-  print 'max seq len:', maxlen
-  print 'vocab size:', x.max() + 1
-  print 'number of features:', len(provider.token2int)
-  print 'number of labels:', len(provider.code2int)
+  print('x shape:', x.shape)
+  print('y shape:', y.shape)
+  print('max seq len:', maxlen)
+  print('vocab size:', x.max() + 1)
+  print('number of features:', len(provider.token2int))
+  print('number of labels:', len(provider.code2int))
 
   model = CnnCodePredictionModel()
   search = RandomSearch(model, x, y)
   best_config = search.optimize(max_iter=64)
-  print 'best config:', best_config
+  print('best config:', best_config)

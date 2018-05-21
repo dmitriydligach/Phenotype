@@ -55,7 +55,7 @@ def nfoldcv(metric='f1', pos_class='yes'):
     y_train,
     scoring=metric,
     cv=10)
-  print '%s (n-fold cv) = %.3f' % (metric, numpy.mean(cv_scores))
+  print('%s (n-fold cv) = %.3f' % (metric, numpy.mean(cv_scores)))
 
 def roc(pos_class='yes'):
   """Get ROC curve"""
@@ -78,7 +78,7 @@ def roc(pos_class='yes'):
   predicted = classifier.predict_proba(x_test)
 
   roc_auc = roc_auc_score(y_test, predicted[:, pos_class_ind])
-  print 'roc auc (test) = %.3f' % roc_auc
+  print('roc auc (test) = %.3f' % roc_auc)
 
 def f1(pos_class='yes'):
   """Train SVM and compute p, r, and f1"""
@@ -98,9 +98,9 @@ def f1(pos_class='yes'):
   recall = recall_score(test_labels, predicted, pos_label=pos_class)
   f1 = f1_score(test_labels, predicted, pos_label=pos_class)
 
-  print 'p (test) = %.3f' % precision
-  print 'r (test) = %.3f' % recall
-  print 'f1 (test) = %.3f' % f1
+  print('p (test) = %.3f' % precision)
+  print('r (test) = %.3f' % recall)
+  print('f1 (test) = %.3f' % f1)
 
 if __name__ == "__main__":
 

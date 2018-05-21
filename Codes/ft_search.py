@@ -6,7 +6,7 @@ np.random.seed(1337)
 import sys
 sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
-import ConfigParser, os, random
+import configparser, os, random
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -66,7 +66,7 @@ class CodePredictionModel:
   def get_model(self, init_vectors, vocab_size, input_length, output_units, config):
     """Model definition"""
 
-    cfg = ConfigParser.ConfigParser()
+    cfg = configparser.ConfigParser()
     cfg.read(sys.argv[1])
 
     model = Sequential()
@@ -122,13 +122,13 @@ class CodePredictionModel:
     distribution[distribution >= 0.5] = 1
 
     f1 = f1_score(valid_y, distribution, average='macro')
-    print 'config: %s, epochs: %d, f1: %.3f' % (config, epochs, f1)
+    print('config: %s, epochs: %d, f1: %.3f' % (config, epochs, f1))
 
     return 1 - f1
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
   base = os.environ['DATA_ROOT']
@@ -150,4 +150,4 @@ if __name__ == "__main__":
   model = CodePredictionModel()
   search = RandomSearch(model, x, y)
   best_config = search.optimize(max_iter=256)
-  print 'best config:', best_config
+  print('best config:', best_config)

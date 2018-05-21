@@ -32,4 +32,4 @@ def read_cuis(file_path, ignore_negation=False):
 
 if __name__ == "__main__":
 
-  print
+  print()
