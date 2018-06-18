@@ -16,6 +16,7 @@ def write_admissions_to_files():
       printable = ''.join(c for c in text if c in string.printable)
       outfile = open('%s%s.txt' % (OUT_DIR, hadmid), 'a')
       outfile.write(printable + '\n')
+      outfile.write('\n**************************\n\n')
 
 def write_patients_to_files():
   """Write files to one directory. Group by patient."""
