@@ -163,9 +163,12 @@ class DatasetProvider:
 
       # make code vector for this example
       subj_id = file.split('.')[0]
-      # if len(self.subj2codes[subj_id]) == 0:
       if subj_id not in self.subj2codes:
-        continue # no codes for this file
+        print('no subj_id in subj2codes:', subj_id)
+        continue # subject was present once with no code
+      if len(self.subj2codes[subj_id]) == 0:
+        print('no codes for subj_id:', subj_id)
+        continue # shouldn't happen
 
       code_vec = [0] * len(self.code2int)
       for icd9_category in self.subj2codes[subj_id]:
