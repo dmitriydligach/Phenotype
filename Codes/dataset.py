@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy
 import configparser, os, nltk, pandas, sys
@@ -114,12 +114,16 @@ class DatasetProvider:
                             num_digits):
     """Map subjects to codes"""
 
-    frame = pandas.read_csv(code_file)
+    frame = pandas.read_csv(code_file, dtype='str')
 
     for subj_id, code in zip(frame.SUBJECT_ID, frame[code_col]):
+      if pandas.isnull(subj_id):
+        continue
+      if pandas.isnull(code):
+        continue
       if subj_id not in self.subj2codes:
         self.subj2codes[subj_id] = set()
-      short_code = '%s_%s' % (prefix, str(code)[0:num_digits])
+      short_code = '%s_%s' % (prefix, code[0:num_digits])
       self.subj2codes[subj_id].add(short_code)
 
   def make_code_alphabet(self):
@@ -158,9 +162,9 @@ class DatasetProvider:
         continue # file too long
 
       # make code vector for this example
-      subj_id = int(file.split('.')[0])
-      if len(self.subj2codes[subj_id]) == 0:
-        print('skipping file:', file)
+      subj_id = file.split('.')[0]
+      # if len(self.subj2codes[subj_id]) == 0:
+      if subj_id not in self.subj2codes:
         continue # no codes for this file
 
       code_vec = [0] * len(self.code2int)
