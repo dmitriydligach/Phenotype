@@ -41,13 +41,29 @@ class DatasetProvider:
       self.make_and_write_token_alphabet()
     print('retrieving alphabet from file...')
     self.token2int = pickle.load(open(ALPHABET_PICKLE, 'rb'))
+
     print('mapping codes...')
     diag_code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
     proc_code_file = os.path.join(self.code_dir, PROC_ICD9_FILE)
     cpt_code_file = os.path.join(self.code_dir, CPT_CODE_FILE)
-    self.map_subjects_to_codes(diag_code_file, 'ICD9_CODE', 'diag', 3)
-    self.map_subjects_to_codes(proc_code_file, 'ICD9_CODE', 'proc', 2)
-    self.map_subjects_to_codes(cpt_code_file, 'CPT_NUMBER', 'cpt', 5)
+    self.map_subjects_to_codes(
+      diag_code_file,
+      'SUBJECT_ID',
+      'ICD9_CODE',
+      'diag',
+      3)
+    self.map_subjects_to_codes(
+      proc_code_file,
+      'SUBJECT_ID',
+      'ICD9_CODE',
+      'proc',
+      2)
+    self.map_subjects_to_codes(
+      cpt_code_file,
+      'SUBJECT_ID',
+      'CPT_NUMBER',
+      'cpt',
+      5)
     self.make_code_alphabet()
 
   def read_tokens(self, file_name):
@@ -109,6 +125,7 @@ class DatasetProvider:
 
   def map_subjects_to_codes(self,
                             code_file,
+                            id_col,
                             code_col,
                             prefix,
                             num_digits):
@@ -116,9 +133,9 @@ class DatasetProvider:
 
     frame = pandas.read_csv(code_file, dtype='str')
 
-    for subj_id, code in zip(frame.SUBJECT_ID, frame[code_col]):
+    for subj_id, code in zip(frame[id_col], frame[code_col]):
       if pandas.isnull(subj_id):
-        continue
+        continue # some subjects skipped (e.g. 13567)
       if pandas.isnull(code):
         continue
       if subj_id not in self.subj2codes:
@@ -164,10 +181,8 @@ class DatasetProvider:
       # make code vector for this example
       subj_id = file.split('.')[0]
       if subj_id not in self.subj2codes:
-        print('no subj_id in subj2codes:', subj_id)
         continue # subject was present once with no code
       if len(self.subj2codes[subj_id]) == 0:
-        print('no codes for subj_id:', subj_id)
         continue # shouldn't happen
 
       code_vec = [0] * len(self.code2int)
