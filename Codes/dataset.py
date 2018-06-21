@@ -48,19 +48,19 @@ class DatasetProvider:
     cpt_code_file = os.path.join(self.code_dir, CPT_CODE_FILE)
     self.index_codes(
       diag_code_file,
-      'SUBJECT_ID',
+      'HADM_ID',
       'ICD9_CODE',
       'diag',
       3)
     self.index_codes(
       proc_code_file,
-      'SUBJECT_ID',
+      'HADM_ID',
       'ICD9_CODE',
       'proc',
       2)
     self.index_codes(
       cpt_code_file,
-      'SUBJECT_ID',
+      'HADM_ID',
       'CPT_NUMBER',
       'cpt',
       5)
