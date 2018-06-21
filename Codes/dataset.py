@@ -46,19 +46,19 @@ class DatasetProvider:
     diag_code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
     proc_code_file = os.path.join(self.code_dir, PROC_ICD9_FILE)
     cpt_code_file = os.path.join(self.code_dir, CPT_CODE_FILE)
-    self.map_subjects_to_codes(
+    self.index_codes(
       diag_code_file,
       'SUBJECT_ID',
       'ICD9_CODE',
       'diag',
       3)
-    self.map_subjects_to_codes(
+    self.index_codes(
       proc_code_file,
       'SUBJECT_ID',
       'ICD9_CODE',
       'proc',
       2)
-    self.map_subjects_to_codes(
+    self.index_codes(
       cpt_code_file,
       'SUBJECT_ID',
       'CPT_NUMBER',
@@ -123,13 +123,13 @@ class DatasetProvider:
     pickle_file = open(ALPHABET_PICKLE, 'wb')
     pickle.dump(self.token2int, pickle_file)
 
-  def map_subjects_to_codes(self,
-                            code_file,
-                            id_col,
-                            code_col,
-                            prefix,
-                            num_digits):
-    """Map subjects to codes"""
+  def index_codes(self,
+                  code_file,
+                  id_col,
+                  code_col,
+                  prefix,
+                  num_digits):
+    """Map subjects or hospital admissions to codes"""
 
     frame = pandas.read_csv(code_file, dtype='str')
 
