@@ -3,10 +3,14 @@
 import numpy as np
 np.random.seed(1337)
 
+import os
+import tensorflow as tf
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
-import configparser, os
+import configparser
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
