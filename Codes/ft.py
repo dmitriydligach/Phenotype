@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 
+# reproducible results
 import numpy as np
-np.random.seed(1337)
+import random as rn
 import tensorflow as tf
+np.random.seed(1337)
+rn.seed(27)
 tf.set_random_seed(1337)
 import os
+os.environ['PYTHONHASHSEED'] = '0'
+from keras import backend as k
+s = tf.Session(graph=tf.get_default_graph())
+k.set_session(s)
+
+# the rest of imports
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 sys.path.append('../Lib/')
