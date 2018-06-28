@@ -4,10 +4,8 @@ import numpy as np
 np.random.seed(1337)
 import tensorflow as tf
 tf.set_random_seed(1337)
-
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 import sys
 sys.dont_write_bytecode = True
 import configparser, pickle
@@ -268,9 +266,9 @@ def run_evaluation_all_diseases():
     rs.append(r)
     f1s.append(f1)
 
-  print('average p =', numpy.mean(ps))
-  print('average r =', numpy.mean(rs))
-  print('average f1 =', numpy.mean(f1s))
+  print('average p =', np.mean(ps))
+  print('average r =', np.mean(rs))
+  print('average f1 =', np.mean(f1s))
 
 if __name__ == "__main__":
 
