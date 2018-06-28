@@ -1,10 +1,22 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+# reproducible results
 import numpy as np
+import random as rn
+import tensorflow as tf
 np.random.seed(1337)
+rn.seed(27)
+tf.set_random_seed(1337)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONHASHSEED'] = '0'
+from keras import backend as k
+s = tf.Session(graph=tf.get_default_graph())
+k.set_session(s)
 
+# the rest of imports
 import sys
-sys.path.append('../../Neural/Lib/')
+sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 import configparser, os, random
 from sklearn.metrics import f1_score
