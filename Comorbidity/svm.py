@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
-import numpy
-numpy.random.seed(0)
+import numpy as np
+np.random.seed(1337)
+import tensorflow as tf
+tf.set_random_seed(1337)
+
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import sys
 sys.dont_write_bytecode = True
-import configparser, os, pickle
+import configparser, pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
