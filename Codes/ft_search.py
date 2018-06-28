@@ -52,10 +52,10 @@ class CodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (32, 64, 128, 256, 512, 1024)
-    self.configs['hidden'] = (500, 1000, 5000, 10000)
-    self.configs['optimizer'] = ('sgd', 'rmsprop', 'adagrad',
-                                 'adadelta', 'adam', 'adamax', 'nadam')
+    self.configs['batch'] = (8, 16, 32, 64, 128, 256, 512)
+    self.configs['hidden'] = (100, 500, 1000, 5000)
+    self.configs['optimizer'] = ('rmsprop', 'adagrad', 'adadelta',
+                                 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh',
                                   'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
@@ -161,5 +161,5 @@ if __name__ == "__main__":
 
   model = CodePredictionModel()
   search = RandomSearch(model, x, y)
-  best_config = search.optimize(max_iter=256)
+  best_config = search.optimize(max_iter=64)
   print('best config:', best_config)
