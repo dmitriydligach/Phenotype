@@ -52,13 +52,13 @@ class CodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (8, 16, 32, 64, 128, 256, 512)
-    self.configs['hidden'] = (100, 500, 1000, 5000)
+    self.configs['batch'] = (8, 16, 32, 64, 128, 256)
+    self.configs['hidden'] = (100, 500, 1000, 5000, 10000)
     self.configs['optimizer'] = ('rmsprop', 'adagrad', 'adadelta',
                                  'adam', 'adamax', 'nadam')
-    self.configs['activation'] = ('relu', 'tanh',
-                                  'sigmoid', 'linear')
+    self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
+    self.configs['dropout'] = (0, 0.25, 0.5)
     # self.configs['lr'] = (0.0001, 0.0005, 0.001, 0.005, 0.01)
 
   def get_random_config(self):
@@ -71,6 +71,7 @@ class CodePredictionModel:
     config['optimizer'] = random.choice(self.configs['optimizer'])
     config['activation'] = random.choice(self.configs['activation'])
     config['embed'] = random.choice(self.configs['embed'])
+    config['dropout'] = random.choice(self.configs['dropout'])
     # config['lr'] = random.choice(self.configs['lr'])
 
     return config
@@ -92,6 +93,8 @@ class CodePredictionModel:
 
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation(config['activation']))
+
+    model.add(Dropout(config['dropout']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
