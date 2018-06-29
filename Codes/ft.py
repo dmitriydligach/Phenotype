@@ -69,7 +69,7 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(GlobalAveragePooling1D(name='AL'))
 
   model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
-  model.add(Activation('relu'))
+  model.add(Activation('linear'))
 
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
