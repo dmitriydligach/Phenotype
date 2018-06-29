@@ -28,7 +28,7 @@ from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation
+from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
