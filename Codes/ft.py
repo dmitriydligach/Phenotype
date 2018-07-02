@@ -43,6 +43,28 @@ warnings.warn = warn
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
 
+from keras.callbacks import Callback
+from sklearn.metrics import f1_score
+
+class Metrics(Callback):
+
+  def on_epoch_end(self, epoch, logs={}):
+    """Compute f1 score"""
+
+    # this is what we passed to fit()
+    valid_x = self.validation_data[0]
+    valid_y = self.validation_data[1]
+
+    # probability for each class (test size, num of classes)
+    distribution = self.model.predict(valid_x)
+
+    # turn into an indicator matrix
+    distribution[distribution < 0.5] = 0
+    distribution[distribution >= 0.5] = 1
+
+    f1 = f1_score(valid_y, distribution, average='macro')
+    print("f1 after epoch %d: %.3f" % (epoch, f1))
+
 def print_config(cfg):
   """Print configuration settings"""
 
@@ -132,6 +154,8 @@ if __name__ == "__main__":
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
+            callbacks=[Metrics()] if test_x.shape[0]>0 else None,
+            validation_data=(test_x, test_y) if test_x.shape[0]>0 else None,
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0)
