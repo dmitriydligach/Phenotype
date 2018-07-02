@@ -28,7 +28,7 @@ from keras.utils.np_utils import to_categorical
 from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation
+from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
@@ -69,7 +69,9 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(GlobalAveragePooling1D(name='AL'))
 
   model.add(Dense(cfg.getint('dan', 'hidden'), name='HL'))
-  model.add(Activation('linear'))
+  model.add(Activation(cfg.get('dan', 'activation')))
+
+  model.add(Dropout(cfg.getfloat('dan', 'dropout')))
 
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
@@ -119,8 +121,12 @@ if __name__ == "__main__":
   print('number of features:', len(dataset.token2int))
   print('number of labels:', len(dataset.code2int))
 
+  if cfg.has_option('dan', 'optimizer'):
+    optimizer = cfg.get('dan', 'optimizer')
+  else:
+    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
+
   model = get_model(cfg, init_vectors, len(dataset.token2int))
-  optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
                 metrics=['accuracy'])
