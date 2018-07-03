@@ -178,9 +178,9 @@ if __name__ == "__main__":
   f1 = f1_score(val_y, distribution, average='macro')
   precision = precision_score(val_y, distribution, average='macro')
   recall = recall_score(val_y, distribution, average='macro')
-  print('macro average p =', precision)
-  print('macro average r =', recall)
-  print('macro average f1 =', f1)
+  print('macro p = %.3f' % precision)
+  print('macro r = %.3f' % recall)
+  print('macro f1 = %.3f' % f1)
 
   outf1 = open(RESULTS_FILE, 'w')
   int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
