@@ -13,6 +13,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
@@ -32,6 +33,92 @@ warnings.warn = warn
 FEATURE_LIST = 'Model/features.txt'
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
+
+def grid_search(x, y):
+  """Find best model"""
+
+  param_grid = {'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
+  lr = LinearSVC(class_weight='balanced')
+  grid_search = GridSearchCV(
+    lr,
+    param_grid,
+    scoring='f1_micro',
+    cv=10)
+  grid_search.fit(x, y)
+
+  return grid_search.best_estimator_
+
+def run_evaluation_dense(disease, judgement, cv=True):
+  """Use pre-trained patient representations"""
+
+  print('disease:', disease)
+  print('judgement:', judgement)
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_data = os.path.join(base, cfg.get('data', 'train_data'))
+  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
+  test_data = os.path.join(base, cfg.get('data', 'test_data'))
+  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
+
+  # load pre-trained model
+  model = load_model(cfg.get('data', 'model_file'))
+  interm_layer_model = Model(
+    inputs=model.input,
+    outputs=model.get_layer('HL').output)
+
+  # load training data first
+  train_data_provider = DatasetProvider(
+    train_data,
+    train_annot,
+    disease,
+    judgement,
+    use_pickled_alphabet=True,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_train, y_train = train_data_provider.load()
+
+  classes = len(set(y_train))
+  print('unique labels in train:', classes)
+  maxlen = model.get_layer(name='EL').get_config()['input_length']
+  x_train = pad_sequences(x_train, maxlen=maxlen)
+
+  # make training vectors for target task
+  print('original x_train shape:', x_train.shape)
+  x_train = interm_layer_model.predict(x_train)
+  print('new x_train shape:', x_train.shape)
+
+  # now load the test set
+  test_data_provider = DatasetProvider(
+    test_data,
+    test_annot,
+    disease,
+    judgement,
+    use_pickled_alphabet=True,
+    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
+    min_token_freq=cfg.getint('args', 'min_token_freq'))
+  x_test, y_test = test_data_provider.load()
+  x_test = pad_sequences(x_test, maxlen=maxlen)
+
+  # make test vectors for target task
+  print('original x_test shape:', x_test.shape)
+  x_test = interm_layer_model.predict(x_test)
+  print('new x_test shape:', x_test.shape)
+
+  if cv:
+    classifier = grid_search(x_train, y_train)
+  else:
+    classifier = LinearSVC(class_weight='balanced')
+    classifier.fit(x_train, y_train)
+
+  predictions = classifier.predict(x_test)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
+
+  return p, r, f1
 
 def run_evaluation_sparse(disease, judgement, use_svd=False):
   """Train on train set and evaluate on test set"""
@@ -164,74 +251,6 @@ def run_evaluation_svd(disease, judgement):
   print('f1 = %.3f\n' % f1)
 
   print('%.3f & %.3f & %.3f\n' % (p, r, f1))
-
-  return p, r, f1
-
-def run_evaluation_dense(disease, judgement):
-  """Use pre-trained patient representations"""
-
-  print('disease:', disease)
-  print('judgement:', judgement)
-
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
-  base = os.environ['DATA_ROOT']
-  train_data = os.path.join(base, cfg.get('data', 'train_data'))
-  train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
-  test_data = os.path.join(base, cfg.get('data', 'test_data'))
-  test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
-
-  # load pre-trained model
-  model = load_model(cfg.get('data', 'model_file'))
-  interm_layer_model = Model(
-    inputs=model.input,
-    outputs=model.get_layer('HL').output)
-
-  # load training data first
-  train_data_provider = DatasetProvider(
-    train_data,
-    train_annot,
-    disease,
-    judgement,
-    use_pickled_alphabet=True,
-    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
-    min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_train, y_train = train_data_provider.load()
-
-  classes = len(set(y_train))
-  print('unique labels in train:', classes)
-  maxlen = cfg.getint('data', 'maxlen')
-  x_train = pad_sequences(x_train, maxlen=maxlen)
-
-  # make training vectors for target task
-  print('original x_train shape:', x_train.shape)
-  x_train = interm_layer_model.predict(x_train)
-  print('new x_train shape:', x_train.shape)
-
-  # now load the test set
-  test_data_provider = DatasetProvider(
-    test_data,
-    test_annot,
-    disease,
-    judgement,
-    use_pickled_alphabet=True,
-    alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
-    min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_test, y_test = test_data_provider.load()
-  x_test = pad_sequences(x_test, maxlen=maxlen)
-
-  # make test vectors for target task
-  print('original x_test shape:', x_test.shape)
-  x_test = interm_layer_model.predict(x_test)
-  print('new x_test shape:', x_test.shape)
-
-  classifier = LinearSVC(class_weight='balanced')
-  model = classifier.fit(x_train, y_train)
-  predictions = classifier.predict(x_test)
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
 
   return p, r, f1
 
