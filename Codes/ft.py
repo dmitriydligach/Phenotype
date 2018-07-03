@@ -62,8 +62,8 @@ class Metrics(Callback):
     distribution[distribution < 0.5] = 0
     distribution[distribution >= 0.5] = 1
 
-    p = precision_score(test_y, distribution, average='macro')
-    r = recall_score(test_y, distribution, average='macro')
+    p = precision_score(valid_y, distribution, average='macro')
+    r = recall_score(valid_y, distribution, average='macro')
     f1 = f1_score(valid_y, distribution, average='macro')
     print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'))
   x, y = dataset.load()
-  train_x, test_x, train_y, test_y = train_test_split(
+  train_x, val_x, train_y, val_y = train_test_split(
     x,
     y,
     test_size=cfg.getfloat('args', 'test_size'))
@@ -134,14 +134,14 @@ if __name__ == "__main__":
   # turn x into numpy array among other things
   classes = len(dataset.code2int)
   train_x = pad_sequences(train_x, maxlen=maxlen)
-  test_x = pad_sequences(test_x, maxlen=maxlen)
+  val_x = pad_sequences(val_x, maxlen=maxlen)
   train_y = np.array(train_y)
-  test_y = np.array(test_y)
+  val_y = np.array(val_y)
 
   print('train_x shape:', train_x.shape)
   print('train_y shape:', train_y.shape)
-  print('test_x shape:', test_x.shape)
-  print('test_y shape:', test_y.shape)
+  print('val_x shape:', val_x.shape)
+  print('val_y shape:', val_y.shape)
   print('number of features:', len(dataset.token2int))
   print('number of labels:', len(dataset.code2int))
 
@@ -156,8 +156,8 @@ if __name__ == "__main__":
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
-            callbacks=[Metrics()] if test_x.shape[0]>0 else None,
-            validation_data=(test_x, test_y) if test_x.shape[0]>0 else None,
+            callbacks=[Metrics()] if val_x.shape[0]>0 else None,
+            validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
             validation_split=0.0)
@@ -169,22 +169,22 @@ if __name__ == "__main__":
     exit()
 
   # probability for each class; (test size, num of classes)
-  distribution = model.predict(test_x, batch_size=cfg.getint('dan', 'batch'))
+  distribution = model.predict(val_x, batch_size=cfg.getint('dan', 'batch'))
 
   # turn into an indicator matrix
   distribution[distribution < 0.5] = 0
   distribution[distribution >= 0.5] = 1
 
-  f1 = f1_score(test_y, distribution, average='macro')
-  precision = precision_score(test_y, distribution, average='macro')
-  recall = recall_score(test_y, distribution, average='macro')
+  f1 = f1_score(val_y, distribution, average='macro')
+  precision = precision_score(val_y, distribution, average='macro')
+  recall = recall_score(val_y, distribution, average='macro')
   print('macro average p =', precision)
   print('macro average r =', recall)
   print('macro average f1 =', f1)
 
   outf1 = open(RESULTS_FILE, 'w')
   int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
-  f1_scores = f1_score(test_y, distribution, average=None)
+  f1_scores = f1_score(val_y, distribution, average=None)
   outf1.write("%s|%s\n" % ('macro', f1))
   for index, f1 in enumerate(f1_scores):
     outf1.write("%s|%s\n" % (int2code[index], f1))
