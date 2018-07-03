@@ -231,9 +231,7 @@ def run_evaluation_dense(disease, judgement):
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
-  print('p = %.3f' % p)
-  print('r = %.3f' % r)
-  print('f1 = %.3f\n' % f1)
+  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
 
   return p, r, f1
 
@@ -249,9 +247,7 @@ def run_evaluation_all_diseases():
   evaluation = cfg.get('data', 'evaluation')
   test_annot = os.path.join(base, cfg.get('data', 'test_annot'))
 
-  ps = []
-  rs = []
-  f1s = []
+  ps = []; rs = []; f1s = []
   for disease in i2b2.get_disease_names(test_annot, exclude):
     if evaluation == 'sparse':
       # use bag-of-word vectors
@@ -266,9 +262,9 @@ def run_evaluation_all_diseases():
     rs.append(r)
     f1s.append(f1)
 
-  print('average p =', np.mean(ps))
-  print('average r =', np.mean(rs))
-  print('average f1 =', np.mean(f1s))
+  print('average p = %.3f' % np.mean(ps))
+  print('average r = %.3f' % np.mean(rs))
+  print('average f1 = %.3f' % np.mean(f1s))
 
 if __name__ == "__main__":
 
