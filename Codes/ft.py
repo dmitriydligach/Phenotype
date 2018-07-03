@@ -62,8 +62,10 @@ class Metrics(Callback):
     distribution[distribution < 0.5] = 0
     distribution[distribution >= 0.5] = 1
 
+    p = precision_score(test_y, distribution, average='macro')
+    r = recall_score(test_y, distribution, average='macro')
     f1 = f1_score(valid_y, distribution, average='macro')
-    print("f1 after epoch %d: %.3f" % (epoch, f1))
+    print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
 def print_config(cfg):
   """Print configuration settings"""
