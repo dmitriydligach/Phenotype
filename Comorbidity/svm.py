@@ -67,6 +67,8 @@ def run_evaluation_dense(disease, judgement, cv=True):
   interm_layer_model = Model(
     inputs=model.input,
     outputs=model.get_layer('HL').output)
+  maxlen = model.get_layer(name='EL').get_config()['input_length']
+  print('max sequence length:', maxlen)
 
   # load training data first
   train_data_provider = DatasetProvider(
@@ -81,7 +83,6 @@ def run_evaluation_dense(disease, judgement, cv=True):
 
   classes = len(set(y_train))
   print('unique labels in train:', classes)
-  maxlen = model.get_layer(name='EL').get_config()['input_length']
   x_train = pad_sequences(x_train, maxlen=maxlen)
 
   # make training vectors for target task
