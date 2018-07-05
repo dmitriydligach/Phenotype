@@ -43,7 +43,8 @@ def grid_search(x, y):
     lr,
     param_grid,
     scoring='f1_micro',
-    cv=10)
+    cv=10,
+    n_jobs=-1)
   grid_search.fit(x, y)
 
   return grid_search.best_estimator_
