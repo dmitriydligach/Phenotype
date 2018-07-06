@@ -49,7 +49,7 @@ def grid_search(x, y):
 
   return grid_search.best_estimator_
 
-def run_evaluation_dense(disease, judgement, cv=True):
+def run_evaluation_dense(disease, judgement):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
@@ -108,7 +108,7 @@ def run_evaluation_dense(disease, judgement, cv=True):
   x_test = interm_layer_model.predict(x_test)
   print('new x_test shape:', x_test.shape)
 
-  if cv:
+  if cfg.get('data', 'classif_param') == 'search':
     classifier = grid_search(x_train, y_train)
   else:
     classifier = LinearSVC(class_weight='balanced')
