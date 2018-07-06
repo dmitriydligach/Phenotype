@@ -1,12 +1,24 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+# reproducible results
 import numpy as np
+import random as rnd
+import tensorflow as tf
 np.random.seed(1337)
+rnd.seed(27)
+tf.set_random_seed(1337)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONHASHSEED'] = '0'
+from keras import backend as k
+s = tf.Session(graph=tf.get_default_graph())
+k.set_session(s)
 
+# the rest of imports
 import sys
-sys.path.append('../../Neural/Lib/')
+sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
-import configparser, os, random
+import configparser
 from sklearn.metrics import f1_score
 import keras as k
 from keras.preprocessing.sequence import pad_sequences
@@ -34,12 +46,13 @@ class CnnCodePredictionModel:
     self.configs = {};
 
     self.configs['batch'] = (8, 16, 32)
-    self.configs['filters'] = (512, 1024, 2048)
-    self.configs['filtlen'] = (4, 5, 6, 7, 8)
-    self.configs['dropout'] = (0, 0.25, 0.5, 0.75)
-    self.configs['hidden'] = (1000, 3000)
-    self.configs['optimizer'] = ('adam', 'rmsprop', 'adagrad')
-    self.configs['activation'] = ('relu', 'sigmoid', 'linear')
+    self.configs['filters'] = (512, 1024, 2048) # this may not be enough
+    self.configs['filtlen'] = (2, 3, 4, 5, 6, 7, 8)
+    # self.configs['dropout'] = (0, 0.25, 0.5)
+    self.configs['hidden'] = (1000, 5000, 10000)
+    self.configs['optimizer'] = ('rmsprop', 'adagrad', 'adadelta',
+                                 'adam', 'adamax', 'nadam')
+    self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
     self.configs['layers'] = (0, 1, 2)
 
@@ -48,15 +61,15 @@ class CnnCodePredictionModel:
 
     config = {};
 
-    config['batch'] = random.choice(self.configs['batch'])
-    config['filters'] = random.choice(self.configs['filters'])
-    config['filtlen'] = random.choice(self.configs['filtlen'])
-    config['dropout'] = random.choice(self.configs['dropout'])
-    config['hidden'] = random.choice(self.configs['hidden'])
-    config['optimizer'] = random.choice(self.configs['optimizer'])
-    config['activation'] = random.choice(self.configs['activation'])
-    config['embed'] = random.choice(self.configs['embed'])
-    config['layers'] = random.choice(self.configs['layers'])
+    config['batch'] = rnd.choice(self.configs['batch'])
+    config['filters'] = rnd.choice(self.configs['filters'])
+    config['filtlen'] = rnd.choice(self.configs['filtlen'])
+    # config['dropout'] = random.choice(self.configs['dropout'])
+    config['hidden'] = rnd.choice(self.configs['hidden'])
+    config['optimizer'] = rnd.choice(self.configs['optimizer'])
+    config['activation'] = rnd.choice(self.configs['activation'])
+    config['embed'] = rnd.choice(self.configs['embed'])
+    config['layers'] = rnd.choice(self.configs['layers'])
 
     return config
 
@@ -65,7 +78,7 @@ class CnnCodePredictionModel:
 
     model = Sequential()
     model.add(Embedding(input_dim=vocab_size,
-                        output_dim=500,
+                        output_dim=300,
                         input_length=input_length,
                         trainable=True,
                         weights=init_vectors,
@@ -81,7 +94,7 @@ class CnnCodePredictionModel:
       model.add(Activation(config['activation']))
 
     # dropout on the fully-connected layer
-    model.add(Dropout(config['dropout']))
+    # model.add(Dropout(config['dropout']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
