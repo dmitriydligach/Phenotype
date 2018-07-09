@@ -32,7 +32,8 @@ from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
-import dataset, word2vec
+from keras.callbacks import Callback
+import dataset, word2vec, callback
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -42,30 +43,6 @@ warnings.warn = warn
 
 RESULTS_FILE = 'Model/results.txt'
 MODEL_FILE = 'Model/model.h5'
-
-from keras.callbacks import Callback
-from sklearn.metrics import f1_score
-
-class Metrics(Callback):
-
-  def on_epoch_end(self, epoch, logs={}):
-    """Compute f1 score"""
-
-    # this is what we passed to fit()
-    valid_x = self.validation_data[0]
-    valid_y = self.validation_data[1]
-
-    # probability for each class (test size, num of classes)
-    distribution = self.model.predict(valid_x)
-
-    # turn into an indicator matrix
-    distribution[distribution < 0.5] = 0
-    distribution[distribution >= 0.5] = 1
-
-    p = precision_score(valid_y, distribution, average='macro')
-    r = recall_score(valid_y, distribution, average='macro')
-    f1 = f1_score(valid_y, distribution, average='macro')
-    print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
 def print_config(cfg):
   """Print configuration settings"""
@@ -156,7 +133,7 @@ if __name__ == "__main__":
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
-            callbacks=[Metrics()] if val_x.shape[0]>0 else None,
+            callbacks=[callback.Metrics()] if val_x.shape[0]>0 else None,
             validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
             epochs=cfg.getint('dan', 'epochs'),
             batch_size=cfg.getint('dan', 'batch'),
@@ -178,9 +155,11 @@ if __name__ == "__main__":
   f1 = f1_score(val_y, distribution, average='macro')
   precision = precision_score(val_y, distribution, average='macro')
   recall = recall_score(val_y, distribution, average='macro')
-  print('macro p = %.3f' % precision)
-  print('macro r = %.3f' % recall)
-  print('macro f1 = %.3f' % f1)
+  print("\nmacro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+  f1 = f1_score(val_y, distribution, average='micro')
+  precision = precision_score(val_y, distribution, average='micro')
+  recall = recall_score(val_y, distribution, average='micro')
+  print("micro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
   outf1 = open(RESULTS_FILE, 'w')
   int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
