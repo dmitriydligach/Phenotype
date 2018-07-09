@@ -1,4 +1,7 @@
 from keras.callbacks import Callback
+from sklearn.metrics import f1_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
 
 class Metrics(Callback):
 
