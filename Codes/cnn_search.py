@@ -45,16 +45,16 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (8, 16, 32)
-    self.configs['filters'] = (512, 1024, 2048) # this may not be enough
+    self.configs['batch'] = (8, 16)
+    self.configs['filters'] = (256, 512, 1024) # this may not be enough
     self.configs['filtlen'] = (2, 3, 4, 5, 6, 7, 8)
-    # self.configs['dropout'] = (0, 0.25, 0.5)
-    self.configs['hidden'] = (1000, 5000, 10000)
+    self.configs['hidden'] = (500, 1000, 5000)
     self.configs['optimizer'] = ('rmsprop', 'adagrad', 'adadelta',
                                  'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
     self.configs['layers'] = (0, 1, 2)
+    # self.configs['dropout'] = (0, 0.25, 0.5)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -64,12 +64,12 @@ class CnnCodePredictionModel:
     config['batch'] = rnd.choice(self.configs['batch'])
     config['filters'] = rnd.choice(self.configs['filters'])
     config['filtlen'] = rnd.choice(self.configs['filtlen'])
-    # config['dropout'] = random.choice(self.configs['dropout'])
     config['hidden'] = rnd.choice(self.configs['hidden'])
     config['optimizer'] = rnd.choice(self.configs['optimizer'])
     config['activation'] = rnd.choice(self.configs['activation'])
     config['embed'] = rnd.choice(self.configs['embed'])
     config['layers'] = rnd.choice(self.configs['layers'])
+    # config['dropout'] = random.choice(self.configs['dropout'])
 
     return config
 

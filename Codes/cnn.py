@@ -1,12 +1,24 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+# reproducible results
 import numpy as np
+import random as rn
+import tensorflow as tf
 np.random.seed(1337)
+rn.seed(27)
+tf.set_random_seed(1337)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONHASHSEED'] = '0'
+from keras import backend as k
+s = tf.Session(graph=tf.get_default_graph())
+k.set_session(s)
 
+# the rest of the imports
 import sys
-sys.path.append('../../Neural/Lib/')
+sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
-import configparser, os
+import configparser
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -17,11 +29,10 @@ from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
-from keras.layers import GlobalAveragePooling1D
 from keras.layers import Conv1D, GlobalMaxPooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
-import dataset, word2vec
+import dataset, word2vec, callback
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -62,11 +73,9 @@ def get_model(cfg, init_vectors, num_of_features):
     activation='relu'))
   model.add(GlobalMaxPooling1D())
 
-  model.add(Dropout(cfg.getfloat('cnn', 'dropout')))
   model.add(Dense(cfg.getint('cnn', 'hidden'), name='HL'))
-  model.add(Activation('relu'))
+  model.add(Activation(cfg.get('cnn', 'activation')))
 
-  model.add(Dropout(cfg.getfloat('cnn', 'dropout')))
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
 
@@ -90,7 +99,7 @@ if __name__ == "__main__":
     cfg.getint('args', 'min_examples_per_code'),
     use_cuis=False)
   x, y = dataset.load(tokens_as_set=False)
-  train_x, test_x, train_y, test_y = train_test_split(
+  train_x, val_x, train_y, val_y = train_test_split(
     x,
     y,
     test_size=cfg.getfloat('args', 'test_size'))
@@ -105,24 +114,30 @@ if __name__ == "__main__":
   # turn x into numpy array among other things
   classes = len(dataset.code2int)
   train_x = pad_sequences(train_x, maxlen=maxlen)
-  test_x = pad_sequences(test_x, maxlen=maxlen)
+  val_x = pad_sequences(val_x, maxlen=maxlen)
   train_y = np.array(train_y)
-  test_y = np.array(test_y)
+  val_y = np.array(val_y)
 
   print('train_x shape:', train_x.shape)
   print('train_y shape:', train_y.shape)
-  print('test_x shape:', test_x.shape)
-  print('test_y shape:', test_y.shape)
+  print('val_x shape:', val_x.shape)
+  print('val_y shape:', val_y.shape)
   print('number of features:', len(dataset.token2int))
   print('number of labels:', len(dataset.code2int))
 
+  if cfg.has_option('dan', 'optimizer'):
+    optimizer = cfg.get('dan', 'optimizer')
+  else:
+    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
+
   model = get_model(cfg, init_vectors, len(dataset.token2int))
-  optimizer = RMSprop(lr=cfg.getfloat('cnn', 'learnrt'))
   model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
+            callbacks=[callback.Metrics()] if val_x.shape[0]>0 else None,
+            validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
             epochs=cfg.getint('cnn', 'epochs'),
             batch_size=cfg.getint('cnn', 'batch'),
             validation_split=0.0)
@@ -134,22 +149,24 @@ if __name__ == "__main__":
     exit()
 
   # probability for each class; (test size, num of classes)
-  distribution = model.predict(test_x, batch_size=cfg.getint('cnn', 'batch'))
+  distribution = model.predict(val_x, batch_size=cfg.getint('cnn', 'batch'))
 
   # turn into an indicator matrix
   distribution[distribution < 0.5] = 0
   distribution[distribution >= 0.5] = 1
 
-  f1 = f1_score(test_y, distribution, average='macro')
-  precision = precision_score(test_y, distribution, average='macro')
-  recall = recall_score(test_y, distribution, average='macro')
-  print('macro average p =', precision)
-  print('macro average r =', recall)
-  print('macro average f1 =', f1)
+  f1 = f1_score(val_y, distribution, average='macro')
+  p = precision_score(val_y, distribution, average='macro')
+  r = recall_score(val_y, distribution, average='macro')
+  print("macro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+  f1 = f1_score(val_y, distribution, average='micro')
+  p = precision_score(val_y, distribution, average='micro')
+  r = recall_score(val_y, distribution, average='micro')
+  print("micro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
   outf1 = open(RESULTS_FILE, 'w')
   int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
-  f1_scores = f1_score(test_y, distribution, average=None)
+  f1_scores = f1_score(val_y, distribution, average=None)
   outf1.write("%s|%s\n" % ('macro', f1))
   for index, f1 in enumerate(f1_scores):
     outf1.write("%s|%s\n" % (int2code[index], f1))
