@@ -42,7 +42,7 @@ class TrainSVD:
 if __name__ == "__main__":
 
   base = os.environ['DATA_ROOT']
-  path = 'MimicIII/Patients/Cuis/'
+  path = 'MimicIII/Admissions/Cuis/'
   data_dir = os.path.join(base, path)
 
   dataset = TrainSVD(data_dir, 10000)
