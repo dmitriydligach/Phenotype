@@ -11,6 +11,7 @@ sys.dont_write_bytecode = True
 import configparser, pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
@@ -145,16 +146,13 @@ def run_evaluation_sparse(disease, judgement, use_svd=False):
   x_train, y_train = train_data_provider.load_raw()
   print('train examples:', len(x_train))
 
-  vectorizer = CountVectorizer(
+  vectorizer = TfidfVectorizer(
     ngram_range=NGRAM_RANGE,
     stop_words='english',
     min_df=MIN_DF,
     vocabulary=None,
     binary=False)
-  train_count_matrix = vectorizer.fit_transform(x_train)
-
-  tf = TfidfTransformer()
-  train_tfidf_matrix = tf.fit_transform(train_count_matrix)
+  x_train = vectorizer.fit_transform(x_train)
 
   # now handle the test set
   test_data_provider = DatasetProvider(
@@ -164,23 +162,21 @@ def run_evaluation_sparse(disease, judgement, use_svd=False):
     judgement)
   x_test, y_test = test_data_provider.load_raw()
   print('test examples:', len(x_test))
-
-  test_count_matrix = vectorizer.transform(x_test)
-  test_tfidf_matrix = tf.transform(test_count_matrix)
+  x_test = vectorizer.transform(x_test)
 
   if use_svd:
     # reduce sparse vector to 300 dimensions
     svd = TruncatedSVD(n_components=300)
-    train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
-    test_tfidf_matrix = svd.transform(test_tfidf_matrix)
+    x_train = svd.fit_transform(x_train)
+    x_test = svd.transform(x_test)
 
   if cfg.get('data', 'classif_param') == 'search':
-    classifier = grid_search(train_tfidf_matrix, y_train)
+    classifier = grid_search(x_train, y_train)
   else:
     classifier = LinearSVC(class_weight='balanced')
-    classifier.fit(train_tfidf_matrix, y_train)
+    classifier.fit(x_train, y_train)
 
-  predictions = classifier.predict(test_tfidf_matrix)
+  predictions = classifier.predict(x_test)
 
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
