@@ -174,8 +174,12 @@ def run_evaluation_sparse(disease, judgement, use_svd=False):
     train_tfidf_matrix = svd.fit_transform(train_tfidf_matrix)
     test_tfidf_matrix = svd.transform(test_tfidf_matrix)
 
-  classifier = LinearSVC(class_weight='balanced')
-  classifier.fit(train_tfidf_matrix, y_train)
+  if cfg.get('data', 'classif_param') == 'search':
+    classifier = grid_search(train_tfidf_matrix, y_train)
+  else:
+    classifier = LinearSVC(class_weight='balanced')
+    classifier.fit(train_tfidf_matrix, y_train)
+
   predictions = classifier.predict(test_tfidf_matrix)
 
   p = precision_score(y_test, predictions, average='macro')
