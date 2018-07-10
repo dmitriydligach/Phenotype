@@ -41,8 +41,10 @@ class DatasetProvider:
       print('reading alphabet from', alphabet_pickle)
       pkl = open(alphabet_pickle, 'rb')
       self.token2int = pickle.load(pkl)
-    else:
+    elif alphabet_pickle != None:
       self.make_token_alphabet()
+    else:
+      pass # no alphabet needed
 
   def make_token_alphabet(self):
     """Map tokens (CUIs) to integers"""
