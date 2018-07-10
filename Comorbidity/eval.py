@@ -207,9 +207,7 @@ def run_evaluation_svd(disease, judgement):
     train_data,
     train_annot,
     disease,
-    judgement,
-    use_pickled_alphabet=False,
-    alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
+    judgement)
   x_train, y_train = train_data_provider.load_raw()
   print('train examples:', len(x_train))
 
@@ -222,9 +220,7 @@ def run_evaluation_svd(disease, judgement):
     test_data,
     test_annot,
     disease,
-    judgement,
-    use_pickled_alphabet=True,
-    alphabet_pickle=cfg.get('data', 'alphabet_pickle'))
+    judgement)
   x_test, y_test = test_data_provider.load_raw()
   print('test examples:', len(x_test))
   test_tfidf_matrix = vectorizer.transform(x_test)
