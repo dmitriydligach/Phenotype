@@ -54,7 +54,7 @@ def run_evaluation_dense(cfg, disease, judgement):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
-  x_train, y_train, x_test, y_test = data_dense(disease, judgement)
+  x_train, y_train, x_test, y_test = data_dense(cfg, disease, judgement)
 
   if cfg.get('data', 'classif_param') == 'search':
     classifier = grid_search(x_train, y_train)
@@ -74,7 +74,7 @@ def run_evaluation_sparse(cfg, disease, judgement, use_svd=False):
   """Train on train set and evaluate on test set"""
 
   print('disease:', disease)
-  x_train, y_train, x_test, y_test = data_sparse(disease, judgement)
+  x_train, y_train, x_test, y_test = data_sparse(cfg, disease, judgement)
 
   if use_svd:
     # reduce sparse vector to 300 dimensions
@@ -104,8 +104,8 @@ def run_evaluation_hybrid(cfg, disease, judgement):
   """Concatenated dense and sparse vectors and eval"""
 
   print('disease:', disease)
-  x_train_dense, y_train, x_test_dense, y_test = data_dense(disease, judgement)
-  x_train_sparse, y_train, x_test_sparse, y_test = data_sparse(disease, judgement)
+  x_train_dense, y_train, x_test_dense, y_test = data_dense(cfg, disease, judgement)
+  x_train_sparse, y_train, x_test_sparse, y_test = data_sparse(cfg, disease, judgement)
 
   if x_train_dense.shape[0] != x_train_sparse.shape[0]:
     print('mismatch in train!')
@@ -131,11 +131,9 @@ def run_evaluation_hybrid(cfg, disease, judgement):
 
   return p, r, f1
 
-def data_dense(disease, judgement):
+def data_dense(cfg, disease, judgement):
   """Data to feed into code prediction model"""
 
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_data = os.path.join(base, cfg.get('data', 'train_data'))
   train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
@@ -188,11 +186,9 @@ def data_dense(disease, judgement):
 
   return x_train, y_train, x_test, y_test
 
-def data_sparse(disease, judgement, use_svd=False):
+def data_sparse(cfg, disease, judgement, use_svd=False):
   """Bag-of-cuis data for sparse evaluation"""
 
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_data = os.path.join(base, cfg.get('data', 'train_data'))
   train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
