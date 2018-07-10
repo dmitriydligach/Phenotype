@@ -50,11 +50,58 @@ def grid_search(x, y):
 
   return grid_search.best_estimator_
 
-def run_evaluation_dense(disease, judgement):
+def run_evaluation_dense(cfg, disease, judgement):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
-  print('judgement:', judgement)
+  x_train, y_train, x_test, y_test = data_dense(disease, judgement)
+
+  if cfg.get('data', 'classif_param') == 'search':
+    classifier = grid_search(x_train, y_train)
+  else:
+    classifier = LinearSVC(class_weight='balanced')
+    classifier.fit(x_train, y_train)
+
+  predictions = classifier.predict(x_test)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
+
+  return p, r, f1
+
+def run_evaluation_sparse(cfg, disease, judgement, use_svd=False):
+  """Train on train set and evaluate on test set"""
+
+  print('disease:', disease)
+  x_train, y_train, x_test, y_test = data_sparse(disease, judgement)
+
+  if use_svd:
+    # reduce sparse vector to 300 dimensions
+    svd = TruncatedSVD(n_components=300)
+    x_train = svd.fit_transform(x_train)
+    x_test = svd.transform(x_test)
+
+  if cfg.get('data', 'classif_param') == 'search':
+    classifier = grid_search(x_train, y_train)
+  else:
+    classifier = LinearSVC(class_weight='balanced')
+    classifier.fit(x_train, y_train)
+
+  predictions = classifier.predict(x_test)
+
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print('unique labels in train:', len(set(y_train)))
+  print('p = %.3f' % p)
+  print('r = %.3f' % r)
+  print('f1 = %.3f\n' % f1)
+
+  return p, r, f1
+
+def data_dense(disease, judgement):
+  """Data to feed into code prediction model"""
 
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
@@ -70,7 +117,6 @@ def run_evaluation_dense(disease, judgement):
     inputs=model.input,
     outputs=model.get_layer('HL').output)
   maxlen = model.get_layer(name='EL').get_config()['input_length']
-  print('max sequence length:', maxlen)
 
   # load training data first
   train_data_provider = DatasetProvider(
@@ -109,25 +155,10 @@ def run_evaluation_dense(disease, judgement):
   x_test = interm_layer_model.predict(x_test)
   print('new x_test shape:', x_test.shape)
 
-  if cfg.get('data', 'classif_param') == 'search':
-    classifier = grid_search(x_train, y_train)
-  else:
-    classifier = LinearSVC(class_weight='balanced')
-    classifier.fit(x_train, y_train)
+  return x_train, y_train, x_test, y_test
 
-  predictions = classifier.predict(x_test)
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
-
-  return p, r, f1
-
-def run_evaluation_sparse(disease, judgement, use_svd=False):
-  """Train on train set and evaluate on test set"""
-
-  print('disease:', disease)
-  print('judgement:', judgement)
+def data_sparse(disease, judgement, use_svd=False):
+  """Bag-of-cuis data for sparse evaluation"""
 
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
@@ -164,29 +195,7 @@ def run_evaluation_sparse(disease, judgement, use_svd=False):
   print('test examples:', len(x_test))
   x_test = vectorizer.transform(x_test)
 
-  if use_svd:
-    # reduce sparse vector to 300 dimensions
-    svd = TruncatedSVD(n_components=300)
-    x_train = svd.fit_transform(x_train)
-    x_test = svd.transform(x_test)
-
-  if cfg.get('data', 'classif_param') == 'search':
-    classifier = grid_search(x_train, y_train)
-  else:
-    classifier = LinearSVC(class_weight='balanced')
-    classifier.fit(x_train, y_train)
-
-  predictions = classifier.predict(x_test)
-
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print('unique labels in train:', len(set(y_train)))
-  print('p = %.3f' % p)
-  print('r = %.3f' % r)
-  print('f1 = %.3f\n' % f1)
-
-  return p, r, f1
+  return x_train.toarray(), y_train, x_test.toarray(), y_test
 
 def run_evaluation_svd(disease, judgement):
   """Train on train set and evaluate on test set"""
@@ -264,13 +273,13 @@ def run_evaluation_all_diseases():
   for disease in i2b2.get_disease_names(test_annot, exclude):
     if evaluation == 'sparse':
       # use bag-of-word vectors
-      p, r, f1 = run_evaluation_sparse(disease, judgement)
+      p, r, f1 = run_evaluation_sparse(cfg, disease, judgement)
     elif evaluation == 'svd':
       # use low dimensional vectors obtained via svd
-      p, r, f1 = run_evaluation_svd(disease, judgement)
+      p, r, f1 = run_evaluation_svd(cfg, disease, judgement)
     else:
       # use learned patient vectors
-      p, r, f1 = run_evaluation_dense(disease, judgement)
+      p, r, f1 = run_evaluation_dense(cfg, disease, judgement)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)
