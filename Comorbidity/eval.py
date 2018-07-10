@@ -100,6 +100,37 @@ def run_evaluation_sparse(cfg, disease, judgement, use_svd=False):
 
   return p, r, f1
 
+def run_evaluation_hybrid(cfg, disease, judgement):
+  """Concatenated dense and sparse vectors and eval"""
+
+  print('disease:', disease)
+  x_train_dense, y_train, x_test_dense, y_test = data_dense(disease, judgement)
+  x_train_sparse, y_train, x_test_sparse, y_test = data_sparse(disease, judgement)
+
+  if x_train_dense.shape[0] != x_train_sparse.shape[0]:
+    print('mismatch in train!')
+  if x_test_dense.shape[0] != x_test_sparse.shape[0]:
+    print('mismatch in test!')
+
+  x_train = np.concatenate((x_train_dense, x_train_sparse), axis=1)
+  print('train shape:', x_train.shape)
+  x_test = np.concatenate((x_test_dense, x_test_sparse), axis=1)
+  print('test shape:', x_test.shape)
+
+  if cfg.get('data', 'classif_param') == 'search':
+    classifier = grid_search(x_train, y_train)
+  else:
+    classifier = LinearSVC(class_weight='balanced')
+    classifier.fit(x_train, y_train)
+
+  predictions = classifier.predict(x_test)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print("precision: %.3f - recall: %.3f - f1: %.3f\n" % (p, r, f1))
+
+  return p, r, f1
+
 def data_dense(disease, judgement):
   """Data to feed into code prediction model"""
 
@@ -277,9 +308,12 @@ def run_evaluation_all_diseases():
     elif evaluation == 'svd':
       # use low dimensional vectors obtained via svd
       p, r, f1 = run_evaluation_svd(cfg, disease, judgement)
-    else:
+    elif evaluation == 'dense':
       # use learned patient vectors
       p, r, f1 = run_evaluation_dense(cfg, disease, judgement)
+    elif evaluation == 'hybrid':
+      # use combined dense and sparse vectors
+      p, r, f1 = run_evaluation_hybrid(cfg, disease, judgement)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)
