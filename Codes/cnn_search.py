@@ -23,7 +23,7 @@ from sklearn.metrics import f1_score
 import keras as k
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Dropout
+from keras.layers.core import Dense, Activation
 from keras.layers.embeddings import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D
 import dataset, word2vec
@@ -53,8 +53,6 @@ class CnnCodePredictionModel:
                                  'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['embed'] = (True, False)
-    self.configs['layers'] = (0, 1, 2)
-    # self.configs['dropout'] = (0, 0.25, 0.5)
 
   def get_random_config(self):
     """Random training configuration"""
@@ -68,8 +66,6 @@ class CnnCodePredictionModel:
     config['optimizer'] = rnd.choice(self.configs['optimizer'])
     config['activation'] = rnd.choice(self.configs['activation'])
     config['embed'] = rnd.choice(self.configs['embed'])
-    config['layers'] = rnd.choice(self.configs['layers'])
-    # config['dropout'] = random.choice(self.configs['dropout'])
 
     return config
 
@@ -89,12 +85,8 @@ class CnnCodePredictionModel:
       activation='relu'))
     model.add(GlobalMaxPooling1D(name='MP'))
 
-    for n in range(config['layers']):
-      model.add(Dense(config['hidden'], name='HL%d' % (n + 1)))
-      model.add(Activation(config['activation']))
-
-    # dropout on the fully-connected layer
-    # model.add(Dropout(config['dropout']))
+    model.add(Dense(config['hidden'], name='HL'))
+    model.add(Activation(config['activation']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))

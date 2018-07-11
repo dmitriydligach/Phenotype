@@ -125,10 +125,10 @@ if __name__ == "__main__":
   print('number of features:', len(dataset.token2int))
   print('number of labels:', len(dataset.code2int))
 
-  if cfg.has_option('dan', 'optimizer'):
-    optimizer = cfg.get('dan', 'optimizer')
+  if cfg.has_option('cnn', 'optimizer'):
+    optimizer = cfg.get('cnn', 'optimizer')
   else:
-    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
+    optimizer = RMSprop(lr=cfg.getfloat('cnn', 'learnrt'))
 
   model = get_model(cfg, init_vectors, len(dataset.token2int))
   model.compile(loss='binary_crossentropy',
