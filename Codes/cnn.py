@@ -47,14 +47,18 @@ def print_config(cfg):
   """Print configuration settings"""
 
   print('train:', cfg.get('data', 'train'))
-  if cfg.has_option('data', 'embed'):
-    print('embeddings:', cfg.get('data', 'embed'))
-  print('test_size', cfg.getfloat('args', 'test_size'))
-  print('batch:', cfg.get('cnn', 'batch'))
   print('epochs:', cfg.get('cnn', 'epochs'))
+  print('batch:', cfg.get('cnn', 'batch'))
+  print('test_size', cfg.getfloat('args', 'test_size'))
   print('embdims:', cfg.get('cnn', 'embdims'))
   print('hidden:', cfg.get('cnn', 'hidden'))
-  print('learnrt:', cfg.get('cnn', 'learnrt'))
+  print('activation:', cfg.get('cnn', 'activation'))
+  if cfg.has_option('data', 'embed'):
+    print('embeddings:', cfg.get('data', 'embed'))
+  if cfg.has_option('cnn', 'optimizer'):
+    print('optimizer:', cfg.get('cnn', 'optimizer'))
+  else:
+    print('rmsprop with lr:', cfg.get('cnn', 'learnrt'))
 
 def get_model(cfg, init_vectors, num_of_features):
   """CNN model definition"""
