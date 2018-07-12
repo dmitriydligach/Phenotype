@@ -147,6 +147,14 @@ def data_dense(cfg, disease, judgement):
     outputs=model.get_layer('HL').output)
   maxlen = model.get_layer(name='EL').get_config()['input_length']
 
+  # determine whether to treat input tokens as a sequence or set
+  if cfg.get('data', 'model_type') == 'dan':
+    use_cuis = True
+    tokens_as_set = True
+  else:
+    use_cuis = False
+    tokens_as_set = False
+
   # load training data first
   train_data_provider = DatasetProvider(
     train_data,
@@ -155,8 +163,9 @@ def data_dense(cfg, disease, judgement):
     judgement,
     use_pickled_alphabet=True,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
-    min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_train, y_train = train_data_provider.load()
+    min_token_freq=cfg.getint('args', 'min_token_freq'),
+    use_cuis=use_cuis)
+  x_train, y_train = train_data_provider.load(tokens_as_set=tokens_as_set)
 
   classes = len(set(y_train))
   print('unique labels in train:', classes)
@@ -175,8 +184,9 @@ def data_dense(cfg, disease, judgement):
     judgement,
     use_pickled_alphabet=True,
     alphabet_pickle=cfg.get('data', 'alphabet_pickle'),
-    min_token_freq=cfg.getint('args', 'min_token_freq'))
-  x_test, y_test = test_data_provider.load()
+    min_token_freq=cfg.getint('args', 'min_token_freq'),
+    use_cuis=use_cuis)
+  x_test, y_test = test_data_provider.load(tokens_as_set=tokens_as_set)
   x_test = pad_sequences(x_test, maxlen=maxlen)
 
   # make test vectors for target task
