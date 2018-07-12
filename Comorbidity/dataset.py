@@ -186,7 +186,11 @@ class DatasetProvider:
     for f in os.listdir(self.corpus_path):
       doc_id = f.split('.')[0]
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_feat_list = None
+      if self.use_cuis == True:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
 
       # no labels for some documents for some reason
       if doc_id in doc2label:
