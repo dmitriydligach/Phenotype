@@ -23,7 +23,8 @@ class DatasetProvider:
                judgement,
                use_pickled_alphabet=False,
                alphabet_pickle=None,
-               min_token_freq=0):
+               min_token_freq=0,
+               use_cuis=True):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
@@ -32,6 +33,7 @@ class DatasetProvider:
     self.disease = disease
     self.judgement = judgement
     self.alphabet_pickle = alphabet_pickle
+    self.use_cuis = use_cuis
 
     self.token2int = {}
 
@@ -54,7 +56,11 @@ class DatasetProvider:
 
     for f in os.listdir(self.corpus_path):
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_feat_list = None
+      if self.use_cuis:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
       token_counts.update(file_feat_list)
 
     # now make alphabet (high freq tokens first)
@@ -71,7 +77,7 @@ class DatasetProvider:
     pickle_file = open(self.alphabet_pickle, 'wb')
     pickle.dump(self.token2int, pickle_file)
 
-  def load(self, maxlen=float('inf')):
+  def load(self, maxlen=float('inf'), tokens_as_set=True):
     """Convert examples into lists of indices for keras"""
 
     labels = []    # int labels
@@ -88,11 +94,17 @@ class DatasetProvider:
     for f in os.listdir(self.corpus_path):
       doc_id = f.split('.')[0]
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_ngram_list = None
+      if self.use_cuis == True:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
 
       example = []
-      # TODO: use unique tokens or not?
-      for token in set(file_feat_list):
+      if tokens_as_set:
+        file_feat_list = set(file_feat_list)
+
+      for token in file_feat_list:
         if token in self.token2int:
           example.append(self.token2int[token])
         else:
