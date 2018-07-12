@@ -10,9 +10,9 @@ tf.set_random_seed(1337)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['PYTHONHASHSEED'] = '0'
-from keras import backend as k
+from keras import backend as bke
 s = tf.Session(graph=tf.get_default_graph())
-k.set_session(s)
+bke.set_session(s)
 
 # the rest of imports
 import sys
@@ -26,8 +26,8 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras.layers.embeddings import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D
-import dataset, word2vec
 from random_search import RandomSearch
+import dataset, word2vec
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
