@@ -5,7 +5,7 @@ import numpy as np
 import random as rnd
 import tensorflow as tf
 np.random.seed(1337)
-rnd.seed(27)
+rnd.seed(1337)
 tf.set_random_seed(1337)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -45,7 +45,7 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (8, 16)
+    self.configs['batch'] = (8, 16, 32)
     self.configs['filters'] = (256, 512, 1024) # this may not be enough
     self.configs['filtlen'] = (2, 3, 4, 5, 6, 7, 8)
     self.configs['hidden'] = (500, 1000, 5000)
@@ -131,7 +131,6 @@ class CnnCodePredictionModel:
     distribution[distribution >= 0.5] = 1
 
     f1 = f1_score(valid_y, distribution, average='macro')
-    # print 'f1: %.3f, config: %s, epochs: %d' % (f1, config, epochs)
     print('f1: %.3f after %d epochs\n' % (f1, epochs))
 
     return 1 - f1

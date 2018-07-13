@@ -5,7 +5,7 @@ import numpy as np
 import random as rn
 import tensorflow as tf
 np.random.seed(1337)
-rn.seed(27)
+rn.seed(1337)
 tf.set_random_seed(1337)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
