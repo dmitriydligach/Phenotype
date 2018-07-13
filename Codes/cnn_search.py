@@ -124,7 +124,7 @@ class CnnCodePredictionModel:
               verbose=0)
 
     # probability for each class; (test size, num of classes)
-    distribution = model.predict(valid_x, batch_size=cfg.getint('dan', 'batch'))
+    distribution = model.predict(valid_x)
 
     # turn into an indicator matrix
     distribution[distribution < 0.5] = 0

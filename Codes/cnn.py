@@ -153,7 +153,7 @@ if __name__ == "__main__":
     exit()
 
   # probability for each class; (test size, num of classes)
-  distribution = model.predict(val_x, batch_size=cfg.getint('cnn', 'batch'))
+  distribution = model.predict(val_x)
 
   # turn into an indicator matrix
   distribution[distribution < 0.5] = 0
