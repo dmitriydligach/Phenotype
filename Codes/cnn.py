@@ -50,9 +50,14 @@ def print_config(cfg):
   print('epochs:', cfg.get('cnn', 'epochs'))
   print('batch:', cfg.get('cnn', 'batch'))
   print('test_size', cfg.getfloat('args', 'test_size'))
+  print('min_token_freq', cfg.get('args', 'min_token_freq'))
+  print('max_tokens_in_file', cfg.get('args', 'max_tokens_in_file'))
+  print('min_examples_per_code', cfg.get('args', 'min_examples_per_code'))
   print('embdims:', cfg.get('cnn', 'embdims'))
   print('hidden:', cfg.get('cnn', 'hidden'))
   print('activation:', cfg.get('cnn', 'activation'))
+  print('filters:', cfg.get('cnn', 'filters'))
+  print('filtlen:', cfg.get('cnn', 'filtlen'))
   if cfg.has_option('data', 'embed'):
     print('embeddings:', cfg.get('data', 'embed'))
   if cfg.has_option('cnn', 'optimizer'):
