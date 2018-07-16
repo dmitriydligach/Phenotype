@@ -51,7 +51,7 @@ class CnnCodePredictionModel:
     self.configs['hidden'] = (500, 1000, 5000)
     self.configs['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
-    self.configs['dropout'] = (0, 0.25, 0.5)
+    self.configs['dropout'] = (0, 0.25)
     self.configs['embed'] = (True, False)
 
   def get_random_config(self):
