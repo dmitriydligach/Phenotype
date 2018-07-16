@@ -65,7 +65,7 @@ class CnnCodePredictionModel:
     config['hidden'] = rnd.choice(self.configs['hidden'])
     config['optimizer'] = rnd.choice(self.configs['optimizer'])
     config['activation'] = rnd.choice(self.configs['activation'])
-    config['dropout'] = random.choice(self.configs['dropout'])
+    config['dropout'] = rnd.choice(self.configs['dropout'])
     config['embed'] = rnd.choice(self.configs['embed'])
 
     return config
