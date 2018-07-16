@@ -23,7 +23,7 @@ from sklearn.metrics import f1_score
 import keras as k
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from keras.layers.core import Dense, Activation
+from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D
 from random_search import RandomSearch
@@ -45,13 +45,13 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (8, 16, 32)
-    self.configs['filters'] = (256, 512, 1024) # this may not be enough
+    self.configs['batch'] = (4, 8, 16) # 32 causes OOM errors
+    self.configs['filters'] = (256, 512, 1024) # more causes OOM
     self.configs['filtlen'] = (2, 3, 4, 5, 6, 7, 8)
     self.configs['hidden'] = (500, 1000, 5000)
-    self.configs['optimizer'] = ('rmsprop', 'adagrad', 'adadelta',
-                                 'adam', 'adamax', 'nadam')
+    self.configs['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
+    self.configs['dropout'] = (0, 0.25, 0.5)
     self.configs['embed'] = (True, False)
 
   def get_random_config(self):
@@ -65,6 +65,7 @@ class CnnCodePredictionModel:
     config['hidden'] = rnd.choice(self.configs['hidden'])
     config['optimizer'] = rnd.choice(self.configs['optimizer'])
     config['activation'] = rnd.choice(self.configs['activation'])
+    config['dropout'] = random.choice(self.configs['dropout'])
     config['embed'] = rnd.choice(self.configs['embed'])
 
     return config
@@ -87,6 +88,9 @@ class CnnCodePredictionModel:
 
     model.add(Dense(config['hidden'], name='HL'))
     model.add(Activation(config['activation']))
+
+    # dropout on the fully-connected layer
+    model.add(Dropout(config['dropout']))
 
     model.add(Dense(output_units))
     model.add(Activation('sigmoid'))
