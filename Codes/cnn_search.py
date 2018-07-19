@@ -128,7 +128,8 @@ class CnnCodePredictionModel:
               verbose=0)
 
     # probability for each class; (test size, num of classes)
-    distribution = model.predict(valid_x)
+    # batch_size needed because large batches cause OOM
+    distribution = model.predict(valid_x, batch_size=8)
 
     # turn into an indicator matrix
     distribution[distribution < 0.5] = 0
