@@ -55,6 +55,7 @@ def print_config(cfg):
   print('min_examples_per_code', cfg.get('args', 'min_examples_per_code'))
   print('embdims:', cfg.get('cnn', 'embdims'))
   print('hidden:', cfg.get('cnn', 'hidden'))
+  print('dropout:', cfg.get('cnn', 'dropout'))
   print('activation:', cfg.get('cnn', 'activation'))
   print('filters:', cfg.get('cnn', 'filters'))
   print('filtlen:', cfg.get('cnn', 'filtlen'))
@@ -84,6 +85,9 @@ def get_model(cfg, init_vectors, num_of_features):
 
   model.add(Dense(cfg.getint('cnn', 'hidden'), name='HL'))
   model.add(Activation(cfg.get('cnn', 'activation')))
+
+  # dropout on the fully-connected layer
+  model.add(Dropout(cfg.getfloat('cnn', 'dropout')))
 
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
