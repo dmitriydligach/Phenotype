@@ -45,10 +45,10 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (4, 8, 16) # 32 causes OOM errors
+    self.configs['batch'] = (4, 8) # 32 causes OOM errors
     self.configs['filters'] = (256, 512, 1024) # more causes OOM
     self.configs['filtlen'] = (2, 3, 4, 5, 6, 7, 8)
-    self.configs['hidden'] = (500, 1000, 5000)
+    self.configs['hidden'] = (1000, 5000)
     self.configs['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['dropout'] = (0, 0.25)
