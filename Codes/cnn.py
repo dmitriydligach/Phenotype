@@ -81,7 +81,7 @@ def get_model(cfg, init_vectors, num_of_features):
     filters=cfg.getint('cnn', 'filters'),
     kernel_size=cfg.getint('cnn', 'filtlen'),
     activation='relu'))
-  model.add(GlobalMaxPooling1D())
+  model.add(GlobalMaxPooling1D(name='MP'))
 
   model.add(Dense(cfg.getint('cnn', 'hidden'), name='HL'))
   model.add(Activation(cfg.get('cnn', 'activation')))
@@ -92,6 +92,7 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
 
+  model.summary()
   return model
 
 if __name__ == "__main__":
