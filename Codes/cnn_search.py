@@ -171,6 +171,7 @@ if __name__ == "__main__":
   print('number of labels:', len(provider.code2int))
 
   model = CnnCodePredictionModel()
+  model.summary()
   search = RandomSearch(model, x, y)
   best_config = search.optimize(max_iter=64)
   print('best config:', best_config)

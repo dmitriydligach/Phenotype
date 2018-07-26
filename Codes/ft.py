@@ -77,6 +77,7 @@ def get_model(cfg, init_vectors, num_of_features):
   model.add(Dense(classes))
   model.add(Activation('sigmoid'))
 
+  model.summary()
   return model
 
 if __name__ == "__main__":
