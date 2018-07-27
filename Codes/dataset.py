@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import numpy
-import configparser, os, nltk, pandas, sys
+import configparser, os, pandas, sys
 sys.dont_write_bytecode = True
-import glob, string, collections, operator, pickle
+import collections, pickle, shutil
 
+MODEL_DIR = 'Model/'
 ALPHABET_FILE = 'Model/alphabet.txt'
 ALPHABET_PICKLE = 'Model/alphabet.p'
 CODE_FREQ_FILE = 'Model/codes.txt'
@@ -35,12 +35,13 @@ class DatasetProvider:
     self.code2int = {}   # class to int mapping
     self.subj2codes = {} # subj_id to set of icd9 codes
 
-    # making token alphabet is expensive so do it once
-    if not os.path.isfile(ALPHABET_PICKLE):
-      print('making alphabet and dumping it to file...')
+    # remove old model directory and make a fresh one
+    if os.path.isdir(MODEL_DIR):
+      shutil.rmtree(MODEL_DIR)
+    else:
+      os.mkdir(MODEL_DIR)
+      print('making alphabet and saving it in file...')
       self.make_and_write_token_alphabet()
-    print('retrieving alphabet from file...')
-    self.token2int = pickle.load(open(ALPHABET_PICKLE, 'rb'))
 
     print('mapping codes...')
     diag_code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
