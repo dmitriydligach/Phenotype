@@ -37,11 +37,11 @@ class DatasetProvider:
 
     # remove old model directory and make a fresh one
     if os.path.isdir(MODEL_DIR):
+      print('removing old model directory...')
       shutil.rmtree(MODEL_DIR)
-    else:
-      os.mkdir(MODEL_DIR)
-      print('making alphabet and saving it in file...')
-      self.make_and_write_token_alphabet()
+    print('making alphabet and saving it in file...')
+    os.mkdir(MODEL_DIR)
+    self.make_and_write_token_alphabet()
 
     print('mapping codes...')
     diag_code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
