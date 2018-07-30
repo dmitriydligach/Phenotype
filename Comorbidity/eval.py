@@ -144,7 +144,7 @@ def data_dense(cfg, disease, judgement):
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(
     inputs=model.input,
-    outputs=model.get_layer('HL').output)
+    outputs=model.get_layer(cfg.get('data', 'rep_layer')).output)
   maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # determine whether to treat input tokens as a sequence or set
