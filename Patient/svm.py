@@ -2,12 +2,16 @@
 
 import numpy as np
 np.random.seed(1337)
+import tensorflow as tf
+tf.set_random_seed(1337)
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 
-import configparser, os, numpy
+import configparser, os
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
@@ -25,6 +29,29 @@ import dataset
 
 def run_eval():
   """Evaluation on test set"""
+
+  x_train, y_train, x_test, y_test = data_dense()
+
+  classifier = LinearSVC(class_weight='balanced')
+  model = classifier.fit(x_train, y_train)
+  predictions = classifier.predict(x_test)
+  p = precision_score(y_test, predictions, pos_label=1)
+  r = recall_score(y_test, predictions, pos_label=1)
+  f1 = f1_score(y_test, predictions, pos_label=1)
+
+  print('\np = %.3f' % p)
+  print('r = %.3f' % r)
+  print('f1 = %.3f' % f1)
+
+  classifier = LogisticRegression(class_weight='balanced')
+  model = classifier.fit(x_train, y_train)
+  predicted = classifier.predict_proba(x_test)
+  roc_auc = roc_auc_score(y_test, predicted[:, 1])
+
+  print('roc auc = %.3f' % roc_auc)
+
+def data_dense():
+  """Data to feed into code prediction model"""
 
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
@@ -63,23 +90,7 @@ def run_eval():
   x_test = interm_layer_model.predict(x_test)
   print('x_test shape (new):', x_test.shape)
 
-  classifier = LinearSVC(class_weight='balanced')
-  model = classifier.fit(x_train, y_train)
-  predictions = classifier.predict(x_test)
-  p = precision_score(y_test, predictions, pos_label=1)
-  r = recall_score(y_test, predictions, pos_label=1)
-  f1 = f1_score(y_test, predictions, pos_label=1)
-
-  print('\np = %.3f' % p)
-  print('r = %.3f' % r)
-  print('f1 = %.3f' % f1)
-
-  classifier = LogisticRegression(class_weight='balanced')
-  model = classifier.fit(x_train, y_train)
-  predicted = classifier.predict_proba(x_test)
-  roc_auc = roc_auc_score(y_test, predicted[:, 1])
-
-  print('roc auc = %.3f' % roc_auc)
+  return x_train, y_train, x_test, y_test
 
 def run_nfold_cv():
   """N-fold cross validation"""
