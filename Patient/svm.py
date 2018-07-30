@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 np.random.seed(1337)
@@ -33,15 +33,16 @@ def run_eval():
   test_dir = os.path.join(base, cfg.get('data', 'test'))
 
   # load pre-trained model
+  rl = cfg.get('data', 'rep_layer')
   model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(inputs=model.input,
-                             outputs=model.get_layer('HL').output)
+                             outputs=model.get_layer(rl).output)
+  maxlen = model.get_layer(name='EL').get_config()['input_length']
 
   # load target task training data
   dataset_provider = dataset.DatasetProvider(
     train_dir,
     cfg.get('data', 'alphabet_pickle'))
-  maxlen = cfg.getint('data', 'maxlen')
   x_train, y_train = dataset_provider.load(maxlen=maxlen)
   x_train = pad_sequences(x_train, maxlen=maxlen)
 
@@ -54,7 +55,6 @@ def run_eval():
   dataset_provider = dataset.DatasetProvider(
     test_dir,
     cfg.get('data', 'alphabet_pickle'))
-  maxlen = cfg.getint('data', 'maxlen')
   x_test, y_test = dataset_provider.load(maxlen=maxlen)
   x_test = pad_sequences(x_test, maxlen=maxlen)
 
@@ -63,7 +63,7 @@ def run_eval():
   x_test = interm_layer_model.predict(x_test)
   print('x_test shape (new):', x_test.shape)
 
-  classifier = LinearSVC(class_weight='balanced', C=0.1)
+  classifier = LinearSVC(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
   predictions = classifier.predict(x_test)
   p = precision_score(y_test, predictions, pos_label=1)
