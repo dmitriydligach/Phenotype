@@ -15,9 +15,9 @@ import configparser, os
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
-from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score
@@ -27,28 +27,21 @@ from keras.models import load_model
 from keras.models import Model
 import dataset
 
-def run_eval():
+def run_eval(x_train, y_train, x_test, y_test):
   """Evaluation on test set"""
 
-  x_train, y_train, x_test, y_test = data_dense()
-
-  classifier = LinearSVC(class_weight='balanced')
+  classifier = LogisticRegression(class_weight='balanced')
   model = classifier.fit(x_train, y_train)
+
   predictions = classifier.predict(x_test)
   p = precision_score(y_test, predictions, pos_label=1)
   r = recall_score(y_test, predictions, pos_label=1)
   f1 = f1_score(y_test, predictions, pos_label=1)
+  print("\nprecision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
-  print('\np = %.3f' % p)
-  print('r = %.3f' % r)
-  print('f1 = %.3f' % f1)
-
-  classifier = LogisticRegression(class_weight='balanced')
-  model = classifier.fit(x_train, y_train)
-  predicted = classifier.predict_proba(x_test)
-  roc_auc = roc_auc_score(y_test, predicted[:, 1])
-
-  print('roc auc = %.3f' % roc_auc)
+  probs = classifier.predict_proba(x_test)
+  roc_auc = roc_auc_score(y_test, probs[:, 1])
+  print('roc auc: %.3f' % roc_auc)
 
 def data_dense():
   """Data to feed into code prediction model"""
@@ -70,7 +63,7 @@ def data_dense():
   dataset_provider = dataset.DatasetProvider(
     train_dir,
     cfg.get('data', 'alphabet_pickle'))
-  x_train, y_train = dataset_provider.load(maxlen=maxlen)
+  x_train, y_train = dataset_provider.load_keras(maxlen=maxlen)
   x_train = pad_sequences(x_train, maxlen=maxlen)
 
   # make training vectors for target task
@@ -82,7 +75,7 @@ def data_dense():
   dataset_provider = dataset.DatasetProvider(
     test_dir,
     cfg.get('data', 'alphabet_pickle'))
-  x_test, y_test = dataset_provider.load(maxlen=maxlen)
+  x_test, y_test = dataset_provider.load_keras(maxlen=maxlen)
   x_test = pad_sequences(x_test, maxlen=maxlen)
 
   # make test vectors for target task
@@ -91,6 +84,30 @@ def data_dense():
   print('x_test shape (new):', x_test.shape)
 
   return x_train, y_train, x_test, y_test
+
+def data_sparse():
+  """Bag-of-cuis data for sparse evaluation"""
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  base = os.environ['DATA_ROOT']
+  train_dir = os.path.join(base, cfg.get('data', 'train'))
+  test_dir = os.path.join(base, cfg.get('data', 'test'))
+
+  # load training data
+  dataset_provider = dataset.DatasetProvider(train_dir)
+  x_train, y_train = dataset_provider.load_sklearn()
+
+  # load test data
+  dataset_provider = dataset.DatasetProvider(test_dir)
+  x_test, y_test = dataset_provider.load_sklearn()
+
+  # turn xs into tfidf vectors
+  vectorizer = TfidfVectorizer()
+  x_train = vectorizer.fit_transform(x_train)
+  x_test = vectorizer.transform(x_test)
+
+  return x_train.toarray(), y_train, x_test.toarray(), y_test
 
 def run_nfold_cv():
   """N-fold cross validation"""
@@ -146,4 +163,5 @@ def run_nfold_cv():
 
 if __name__ == "__main__":
 
-  run_eval()
+  x_train, y_train, x_test, y_test = data_sparse()
+  run_eval(x_train, y_train, x_test, y_test)
