@@ -109,6 +109,17 @@ def data_sparse():
 
   return x_train.toarray(), y_train, x_test.toarray(), y_test
 
+def data_hybrid():
+  """Concatenate dense and sparse vectors and eval"""
+
+  x_train_sparse, y_train, x_test_sparse, y_test = data_sparse()
+  x_train_dense, y_train, x_test_dense, y_test = data_dense()
+
+  x_train = np.concatenate((x_train_dense, x_train_sparse), axis=1)
+  x_test = np.concatenate((x_test_dense, x_test_sparse), axis=1)
+
+  return x_train, y_train, x_test, y_test
+
 def run_nfold_cv():
   """N-fold cross validation"""
 
@@ -163,5 +174,16 @@ def run_nfold_cv():
 
 if __name__ == "__main__":
 
-  x_train, y_train, x_test, y_test = data_sparse()
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+
+  if cfg.get('data', 'rep') == 'sparse':
+    x_train, y_train, x_test, y_test = data_sparse()
+  elif cfg.get('data', 'rep') == 'dense':
+    x_train, y_train, x_test, y_test = data_dense()
+  elif cfg.get('data', 'rep') == 'hybrid':
+    x_train, y_train, x_test, y_test = data_hybrid()
+  else:
+    exit()
+
   run_eval(x_train, y_train, x_test, y_test)
