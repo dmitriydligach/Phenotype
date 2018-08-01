@@ -52,7 +52,9 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
 def grid_search(x, y):
   """Find best model and fit it"""
 
-  param_grid = {'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
+  param_grid = {
+    'penalty': ['l1', 'l2'],
+    'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
   lr = LogisticRegression(class_weight='balanced')
   gs = GridSearchCV(lr, param_grid, scoring='roc_auc', cv=10)
   gs.fit(x, y)
