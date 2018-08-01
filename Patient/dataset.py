@@ -14,7 +14,7 @@ class DatasetProvider:
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
-    self.label2int = {'No':0, 'Yes':1}
+    self.label2int = {'no':0, 'yes':1}
 
     if alphabet_pickle != None:
       self.token2int = pickle.load(open(alphabet_pickle, 'rb'))
@@ -58,7 +58,7 @@ class DatasetProvider:
           example = example[0:maxlen]
 
         examples.append(example)
-        labels.append(self.label2int[d])
+        labels.append(self.label2int[d.lower()])
 
     return examples, labels
 
@@ -75,7 +75,7 @@ class DatasetProvider:
         file_path = os.path.join(dir_path, f)
         file_feat_list = self.get_cuis(file_path)
         examples.append(' '.join(file_feat_list))
-        labels.append(self.label2int[d])
+        labels.append(self.label2int[d.lower()])
 
     return examples, labels
 
