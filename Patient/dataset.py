@@ -5,6 +5,9 @@ import configparser, os, nltk, pandas, sys
 sys.dont_write_bytecode = True
 import glob, string, collections, operator
 
+# negation prefix e.g. NC0032326
+CUI_NEG_PREF = 'N'
+
 class DatasetProvider:
   """ARDS phenotype"""
 
@@ -19,15 +22,20 @@ class DatasetProvider:
     if alphabet_pickle != None:
       self.token2int = pickle.load(open(alphabet_pickle, 'rb'))
 
-  def get_cuis(self, file_name):
+  def get_cuis(self, file_name, include_negation=False):
     """Return file as a list of CUIs"""
 
     infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read()
+    text = open(infile).read().rstrip()
 
+    # included negated CUIs
+    if include_negation:
+      return text.split()
+
+    # drop negation for negated CUIs
     tokens = []
     for token in text.split():
-      if token.startswith('N'):
+      if token.startswith(CUI_NEG_PREF):
         tokens.append(token[1:])
       else:
         tokens.append(token)
