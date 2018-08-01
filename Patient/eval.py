@@ -16,6 +16,7 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
@@ -41,7 +42,8 @@ def run_eval(x_train, y_train, x_test, y_test):
 
   probs = classifier.predict_proba(x_test)
   roc_auc = roc_auc_score(y_test, probs[:, 1])
-  print('roc auc: %.3f' % roc_auc)
+  accuracy = accuracy_score(y_test, predictions)
+  print("\nauc: %.3f - accuracy: %.3f" % (roc_auc, accuracy))
 
 def data_dense():
   """Data to feed into code prediction model"""
