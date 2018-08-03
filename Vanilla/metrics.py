@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 sys.dont_write_bytecode = True
@@ -16,8 +16,14 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 
-train_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_v2_cuis/'
+train_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_cuis/'
 test_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_test_cuis/'
+
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
 
 def load(path):
   """Assume each subdir is a separate class"""
@@ -73,7 +79,7 @@ def roc(pos_class='yes'):
   x_train = vectorizer.fit_transform(train_examples)
   x_test = vectorizer.transform(test_examples)
 
-  classifier = LogisticRegression(class_weight='balanced')
+  classifier = LogisticRegression(class_weight='balanced', C=1)
   model = classifier.fit(x_train, y_train)
   predicted = classifier.predict_proba(x_test)
 
