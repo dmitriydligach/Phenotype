@@ -14,7 +14,7 @@ from keras import backend as bke
 s = tf.Session(graph=tf.get_default_graph())
 bke.set_session(s)
 
-# the rest of imports
+# rest of the imports
 import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
@@ -26,6 +26,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.embeddings import Embedding
 from keras.layers import Conv1D, GlobalMaxPooling1D
+from keras import optimizers
 from random_search import RandomSearch
 import dataset, word2vec
 
@@ -45,11 +46,12 @@ class CnnCodePredictionModel:
 
     self.configs = {};
 
-    self.configs['batch'] = (1, 2) # larger causes OOM errors
-    self.configs['filters'] = (256, 512, 1024, 2048) # more causes OOM
+    self.configs['batch'] = (1, 2)
+    self.configs['filters'] = (256, 512, 1024)
     self.configs['filtlen'] = (1, 2, 3, 4, 5, 6, 7)
     self.configs['hidden'] = (256, 512, 1024, 2048)
     self.configs['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
+    self.configs['lr'] = (0.0001, 0.001, 0.01, None)
     self.configs['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.configs['dropout'] = (0, 0.25, 0.5)
     self.configs['embed'] = (True, False)
@@ -64,6 +66,7 @@ class CnnCodePredictionModel:
     config['filtlen'] = rnd.choice(self.configs['filtlen'])
     config['hidden'] = rnd.choice(self.configs['hidden'])
     config['optimizer'] = rnd.choice(self.configs['optimizer'])
+    config['lr'] = rnd.choice(self.configs['lr'])
     config['activation'] = rnd.choice(self.configs['activation'])
     config['dropout'] = rnd.choice(self.configs['dropout'])
     config['embed'] = rnd.choice(self.configs['embed'])
@@ -97,6 +100,32 @@ class CnnCodePredictionModel:
 
     return model
 
+  def get_optimizer(self, optimizer, learning_rate):
+    """Get optimizer by name"""
+
+    if optimizer == 'rmsprop':
+      if learning_rate == None:
+        return optimizers.RMSprop()
+      else:
+        return optimizers.RMSprop(lr=learning_rate)
+    elif optimizer == 'adam':
+      if learning_rate == None:
+        optimizers.Adam()
+      else:
+        return optimizers.Adam(lr=learning_rate)
+    elif optimizer == 'adamax':
+      if learning_rate == None:
+        return optimizers.Adamax()
+      else:
+        return optimizers.Adamax(lr=learning_rate)
+    elif optimizer == 'nadam':
+      if learning_rate == None:
+        return optimizers.Nadam()
+      else:
+        return optimizers.Nadam(lr=learning_rate)
+    else:
+      return None
+
   def run_one_eval(self, train_x, train_y, valid_x, valid_y, epochs, config):
     """A single eval"""
 
@@ -118,7 +147,9 @@ class CnnCodePredictionModel:
                            output_units,
                            config)
     model.compile(loss='binary_crossentropy',
-                  optimizer=config['optimizer'],
+                  optimizer=self.get_optimizer(
+                    config['optimizer'],
+                    config['lr']),
                   metrics=['accuracy'])
     model.fit(train_x,
               train_y,
