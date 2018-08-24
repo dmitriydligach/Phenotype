@@ -110,7 +110,7 @@ class CnnCodePredictionModel:
         return optimizers.RMSprop(lr=learning_rate)
     elif optimizer == 'adam':
       if learning_rate == None:
-        optimizers.Adam()
+        return optimizers.Adam()
       else:
         return optimizers.Adam(lr=learning_rate)
     elif optimizer == 'adamax':
