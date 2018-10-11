@@ -11,6 +11,12 @@ import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
+
 import configparser, os
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
@@ -33,15 +39,15 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
   """Evaluation on test set"""
 
   if search:
-    classifier = grid_search(x_train, y_train)
+    classifier = grid_search(x_train, y_train, 'f1_macro')
   else:
     classifier = LogisticRegression(class_weight='balanced')
     model = classifier.fit(x_train, y_train)
 
   predictions = classifier.predict(x_test)
-  p = precision_score(y_test, predictions, pos_label=1)
-  r = recall_score(y_test, predictions, pos_label=1)
-  f1 = f1_score(y_test, predictions, pos_label=1)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
   print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
   probs = classifier.predict_proba(x_test)
@@ -49,14 +55,14 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
   accuracy = accuracy_score(y_test, predictions)
   print("auc: %.3f - accuracy: %.3f" % (roc_auc, accuracy))
 
-def grid_search(x, y):
+def grid_search(x, y, scoring):
   """Find best model and fit it"""
 
   param_grid = {
     'penalty': ['l1', 'l2'],
     'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
   lr = LogisticRegression(class_weight='balanced')
-  gs = GridSearchCV(lr, param_grid, scoring='roc_auc', cv=10)
+  gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
   gs.fit(x, y)
 
   return gs.best_estimator_
