@@ -45,7 +45,7 @@ def grid_search(x, y):
     param_grid,
     scoring='f1_macro',
     cv=10,
-    n_jobs=-1)
+    n_jobs=-1) # -1 fails on mac os
   grid_search.fit(x, y)
 
   return grid_search.best_estimator_
