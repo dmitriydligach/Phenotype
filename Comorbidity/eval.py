@@ -43,7 +43,7 @@ def grid_search(x, y):
   grid_search = GridSearchCV(
     lr,
     param_grid,
-    scoring='f1_micro',
+    scoring='f1_macro',
     cv=10,
     n_jobs=-1)
   grid_search.fit(x, y)
