@@ -19,19 +19,12 @@ import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 
-# ignore sklearn warnings
-def warn(*args, **kwargs):
-  pass
-import warnings
-warnings.warn = warn
-
-import configparser, os
+import configparser
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
@@ -42,6 +35,12 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.models import load_model
 from keras.models import Model
 import dataset
+
+# ignore sklearn warnings
+def warn(*args, **kwargs):
+  pass
+import warnings
+warnings.warn = warn
 
 def grid_search(x, y, scoring):
   """Find best model and fit it"""
