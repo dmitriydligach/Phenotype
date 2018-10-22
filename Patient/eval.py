@@ -1,12 +1,20 @@
 #!/usr/bin/env python3
 
+# reproducible results
 import numpy as np
-np.random.seed(1337)
+import random as rn
 import tensorflow as tf
+np.random.seed(1337)
+rn.seed(1337)
 tf.set_random_seed(1337)
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['PYTHONHASHSEED'] = '0'
+from keras import backend as bke
+s = tf.Session(graph=tf.get_default_graph())
+bke.set_session(s)
 
+# the rest of the imports
 import sys
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
@@ -35,6 +43,18 @@ from keras.models import load_model
 from keras.models import Model
 import dataset
 
+def grid_search(x, y, scoring):
+  """Find best model and fit it"""
+
+  param_grid = {
+    'penalty': ['l1', 'l2'],
+    'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
+  lr = LogisticRegression(class_weight='balanced')
+  gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
+  gs.fit(x, y)
+
+  return gs.best_estimator_
+
 def run_eval(x_train, y_train, x_test, y_test, search=True):
   """Evaluation on test set"""
 
@@ -55,23 +75,9 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
   accuracy = accuracy_score(y_test, predictions)
   print("auc: %.3f - accuracy: %.3f" % (roc_auc, accuracy))
 
-def grid_search(x, y, scoring):
-  """Find best model and fit it"""
-
-  param_grid = {
-    'penalty': ['l1', 'l2'],
-    'C':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]}
-  lr = LogisticRegression(class_weight='balanced')
-  gs = GridSearchCV(lr, param_grid, scoring=scoring, cv=10)
-  gs.fit(x, y)
-
-  return gs.best_estimator_
-
 def data_dense():
   """Data to feed into code prediction model"""
 
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))
   test_dir = os.path.join(base, cfg.get('data', 'test'))
@@ -110,8 +116,6 @@ def data_dense():
 def data_sparse():
   """Bag-of-cuis data for sparse evaluation"""
 
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_dir = os.path.join(base, cfg.get('data', 'train'))
   test_dir = os.path.join(base, cfg.get('data', 'test'))
@@ -142,10 +146,8 @@ def data_hybrid():
 
   return x_train, y_train, x_test, y_test
 
-if __name__ == "__main__":
-
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
+def main():
+  """Driver function"""
 
   if cfg.get('data', 'rep') == 'sparse':
     x_train, y_train, x_test, y_test = data_sparse()
@@ -157,3 +159,8 @@ if __name__ == "__main__":
     exit()
 
   run_eval(x_train, y_train, x_test, y_test)
+if __name__ == "__main__":
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  main()
