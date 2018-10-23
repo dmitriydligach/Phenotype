@@ -42,7 +42,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def make_model(C):
+def make_model(C, interm_layer_model_trainable=True):
   """Model definition"""
 
   # load pretrained code prediction model
@@ -50,6 +50,11 @@ def make_model(C):
   pretrained_model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(inputs=pretrained_model.input,
                              outputs=pretrained_model.get_layer(rl).output)
+
+  # freeze the pretrained weights if specified
+  if not interm_layer_model_trainable:
+    for layer in interm_layer_model.layers:
+      layer.trainable = False
 
   # add logistic regression layer
   model = Sequential()
@@ -141,5 +146,5 @@ if __name__ == "__main__":
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
-  grid_search()
-  # fine_tune(0.0001)
+  fine_tune(0.0001)
+  # grid_search()
