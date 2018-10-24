@@ -42,11 +42,13 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def make_model(C, interm_layer_model_trainable=True):
+def make_model(interm_layer_model_trainable=True):
   """Model definition"""
 
-  # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
+  c = cfg.getfloat('data', 'c')
+
+  # load pretrained code prediction model
   pretrained_model = load_model(cfg.get('data', 'model_file'))
   interm_layer_model = Model(inputs=pretrained_model.input,
                              outputs=pretrained_model.get_layer(rl).output)
@@ -59,9 +61,15 @@ def make_model(C, interm_layer_model_trainable=True):
   # add logistic regression layer
   model = Sequential()
   model.add(interm_layer_model)
-  model.add(Dense(1, activation='sigmoid', kernel_regularizer=regularizers.l2(C)))
+  model.add(Dense(
+    1,
+    activation='sigmoid',
+    kernel_regularizer=regularizers.l2(c)))
 
-  model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+  model.compile(
+    loss='binary_crossentropy',
+    optimizer='rmsprop',
+    metrics=['accuracy'])
 
   return model
 
@@ -71,7 +79,7 @@ def get_maxlen():
   pretrained_model = load_model(cfg.get('data', 'model_file'))
   return pretrained_model.get_layer(name='EL').get_config()['input_length']
 
-def fine_tune(C=1):
+def fine_tune():
   """Fine tuning dense vectors"""
 
   # load target task train and test data
@@ -94,8 +102,9 @@ def fine_tune(C=1):
   x_test = pad_sequences(x_test, maxlen=maxlen)
 
   # train and evaluate
-  model = make_model(C)
-  model.fit(x_train, y_train, epochs=3, validation_split=0.0)
+  model = make_model()
+  epochs = cfg.getint('data', 'epochs')
+  model.fit(x_train, y_train, epochs=epochs, validation_split=0.0)
 
   predictions = model.predict_classes(x_test)
   probs = model.predict(x_test)
@@ -146,5 +155,5 @@ if __name__ == "__main__":
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
 
-  fine_tune(0.0001)
+  fine_tune()
   # grid_search()
