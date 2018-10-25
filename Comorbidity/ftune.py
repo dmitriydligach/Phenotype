@@ -20,6 +20,7 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
+from keras.utils.np_utils import to_categorical
 from keras.models import load_model
 from keras.models import Model, Sequential
 from keras.layers.core import Dense
@@ -37,7 +38,7 @@ FEATURE_LIST = 'Model/features.txt'
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
 
-def make_model(interm_layer_model_trainable=True):
+def make_model(output_classes, interm_layer_model_trainable=True):
   """Model definition"""
 
   rl = cfg.get('data', 'rep_layer')
@@ -57,12 +58,12 @@ def make_model(interm_layer_model_trainable=True):
   model = Sequential()
   model.add(interm_layer_model)
   model.add(Dense(
-    1,
-    activation='sigmoid',
+    output_classes,
+    activation='softmax',
     kernel_regularizer=regularizers.l2(c)))
 
   model.compile(
-    loss='binary_crossentropy',
+    loss='categorical_crossentropy',
     optimizer='rmsprop',
     metrics=['accuracy'])
 
@@ -80,11 +81,17 @@ def run_evaluation(disease, judgement):
   print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
 
+  num_classes = len(set(y_train))
+  y_train = to_categorical(y_train, num_classes)
+
   # train and evaluate
-  model = make_model()
+  model = make_model(num_classes)
   epochs = cfg.getint('args', 'epochs')
   model.fit(x_train, y_train, epochs=epochs)
   predictions = model.predict_classes(x_test)
+
+  # distribution = model.predict(x_test)
+  # predictions = np.argmax(distribution, axis=1)
 
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
