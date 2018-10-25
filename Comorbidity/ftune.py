@@ -37,7 +37,7 @@ FEATURE_LIST = 'Model/features.txt'
 NGRAM_RANGE = (1, 1) # use unigrams for cuis
 MIN_DF = 0
 
-def make_model(cfg, interm_layer_model_trainable=True):
+def make_model(interm_layer_model_trainable=True):
   """Model definition"""
 
   rl = cfg.get('data', 'rep_layer')
@@ -68,20 +68,20 @@ def make_model(cfg, interm_layer_model_trainable=True):
 
   return model
 
-def get_maxlen(cfg):
+def get_maxlen():
   """Obtain max sequence length from saved model"""
 
   pretrained_model = load_model(cfg.get('data', 'model_file'))
   return pretrained_model.get_layer(name='EL').get_config()['input_length']
 
-def run_evaluation(cfg, disease, judgement):
+def run_evaluation(disease, judgement):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
-  x_train, y_train, x_test, y_test = get_data(cfg, disease, judgement)
+  x_train, y_train, x_test, y_test = get_data(disease, judgement)
 
   # train and evaluate
-  model = make_model(cfg)
+  model = make_model()
   epochs = cfg.getint('args', 'epochs')
   model.fit(x_train, y_train, epochs=epochs)
   predictions = model.predict_classes(x_test)
@@ -93,7 +93,7 @@ def run_evaluation(cfg, disease, judgement):
 
   return p, r, f1
 
-def get_data(cfg, disease, judgement):
+def get_data(disease, judgement):
   """Sequences of tokens to feed into code prediction model"""
 
   base = os.environ['DATA_ROOT']
@@ -121,7 +121,7 @@ def get_data(cfg, disease, judgement):
     min_token_freq=cfg.getint('args', 'min_token_freq'),
     use_cuis=use_cuis)
   x_train, y_train = train_data_provider.load(tokens_as_set=tokens_as_set)
-  x_train = pad_sequences(x_train, maxlen=get_maxlen(cfg))
+  x_train = pad_sequences(x_train, maxlen=get_maxlen())
 
   # now load the test set
   test_data_provider = DatasetProvider(
@@ -134,15 +134,13 @@ def get_data(cfg, disease, judgement):
     min_token_freq=cfg.getint('args', 'min_token_freq'),
     use_cuis=use_cuis)
   x_test, y_test = test_data_provider.load(tokens_as_set=tokens_as_set)
-  x_test = pad_sequences(x_test, maxlen=get_maxlen(cfg))
+  x_test = pad_sequences(x_test, maxlen=get_maxlen())
 
   return x_train, y_train, x_test, y_test
 
 def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
 
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   judgement = cfg.get('data', 'judgement')
   evaluation = cfg.get('data', 'evaluation')
@@ -150,7 +148,7 @@ def run_evaluation_all_diseases():
 
   ps = []; rs = []; f1s = []
   for disease in i2b2.get_disease_names(test_annot, set()):
-    p, r, f1 = run_evaluation(cfg, disease, judgement)
+    p, r, f1 = run_evaluation(disease, judgement)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)
@@ -161,4 +159,6 @@ def run_evaluation_all_diseases():
 
 if __name__ == "__main__":
 
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
   run_evaluation_all_diseases()
