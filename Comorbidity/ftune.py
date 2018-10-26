@@ -75,35 +75,16 @@ def run_evaluation(disease, judgement):
 
   print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
-
-  # train and evaluate
-  model = make_model(cfg.getfloat('args', 'c'), len(set(y_train)))
-  model.fit(x_train, y_train, epochs=cfg.getint('args', 'epochs'))
-  distribution = model.predict(x_test)
-  predictions = np.argmax(distribution, axis=1)
-
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
-
-  return p, r, f1
-
-def run_evaluation_with_grid_search(disease, judgement):
-  """Use pre-trained patient representations"""
-
-  print('disease:', disease)
-  x_train, y_train, x_test, y_test = get_data(disease, judgement)
+  num_classes = len(set(y_train))
 
   # run a grid search
   classifier = KerasClassifier(
     make_model,
-    output_classes=len(set(y_train)),
+    output_classes=num_classes,
     verbose=0)
   param_grid = {
-    # 'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    'c':[0.1, 1],
-    'epochs':[1, 2]}
+    'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
+    'epochs':[3, 5, 10, 15, 20, 25]}
   validator = GridSearchCV(
     classifier,
     param_grid,
@@ -114,7 +95,7 @@ def run_evaluation_with_grid_search(disease, judgement):
   print('best param:', validator.best_params_)
 
   # train with best params and evaluate
-  model = make_model(validator.best_params_['c'], len(set(y_train)))
+  model = make_model(validator.best_params_['c'], num_classes)
   model.fit(x_train, y_train, epochs=validator.best_params_['epochs'])
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
@@ -181,7 +162,7 @@ def run_evaluation_all_diseases():
 
   ps = []; rs = []; f1s = []
   for disease in i2b2.get_disease_names(test_annot, set()):
-    p, r, f1 = run_evaluation_with_grid_search(disease, judgement)
+    p, r, f1 = run_evaluation(disease, judgement)
     ps.append(p)
     rs.append(r)
     f1s.append(f1)
