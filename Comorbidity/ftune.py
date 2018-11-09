@@ -15,6 +15,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
@@ -38,6 +39,8 @@ warnings.warn = warn
 def make_model(c, output_classes, interm_layer_model_trainable=True):
   """Model definition"""
 
+  print('making model: c=%s, outputs=%s' % (c, output_classes))
+  
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
   pretrained_model = load_model(cfg.get('data', 'model_file'))
@@ -115,7 +118,7 @@ def get_data(disease, judgement):
 
   return x_train, y_train, x_test, y_test
 
-def run_evaluation(disease, judgement):
+def run_evaluation(disease, judgement, grid_search=False):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
@@ -127,16 +130,28 @@ def run_evaluation(disease, judgement):
     make_model,
     output_classes=num_classes,
     verbose=0)
+
   param_grid = {
     'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
     'epochs':[3, 5, 10, 15, 20, 25]}
-  validator = GridSearchCV(
-    classifier,
-    param_grid,
-    scoring='f1_macro',
-    cv=2,
-    pre_dispatch=1,
-    n_jobs=1)
+
+  if grid_search:
+    validator = GridSearchCV(
+      classifier,
+      param_grid,
+      scoring='f1_macro',
+      cv=2,
+      pre_dispatch=1,
+      n_jobs=1)
+  else:
+    validator = RandomizedSearchCV(
+      classifier,
+      param_grid,
+      n_iter=2,
+      scoring='f1_macro',
+      n_jobs=1,
+      cv=2)
+
   validator.fit(x_train, y_train)
   print('best param:', validator.best_params_)
 
