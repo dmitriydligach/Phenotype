@@ -40,7 +40,7 @@ def make_model(c, output_classes, interm_layer_model_trainable=True):
   """Model definition"""
 
   print('making model: c=%s, outputs=%s' % (c, output_classes))
-  
+
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
   pretrained_model = load_model(cfg.get('data', 'model_file'))
@@ -147,7 +147,7 @@ def run_evaluation(disease, judgement, grid_search=False):
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
-      n_iter=2,
+      n_iter=5,
       scoring='f1_macro',
       n_jobs=1,
       cv=2)
@@ -157,7 +157,11 @@ def run_evaluation(disease, judgement, grid_search=False):
 
   # train with best params and evaluate
   model = make_model(validator.best_params_['c'], num_classes)
-  model.fit(x_train, y_train, epochs=validator.best_params_['epochs'])
+  model.fit(
+    x_train,
+    y_train,
+    epochs=validator.best_params_['epochs'],
+    verbose=0)
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
 
