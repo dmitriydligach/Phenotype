@@ -1,42 +1,44 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy, pickle
-import ConfigParser, os, nltk, pandas, sys
+import configparser, os, nltk, pandas, sys
 sys.dont_write_bytecode = True
 import glob, string, collections, operator
 
+# negation prefix e.g. nC0032326
+CUI_NEG_PREF = 'neg'
+
 class DatasetProvider:
-  """THYME relation data"""
+  """ARDS phenotype"""
 
   def __init__(self,
                corpus_path,
-               alphabet_pickle):
+               alphabet_pickle=None):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
+    self.label2int = {'no':0, 'yes':1}
 
-    self.label2int = {'No':0, 'Yes':1}
-    self.token2int = pickle.load(open(alphabet_pickle, 'rb'))
+    if alphabet_pickle != None:
+      self.token2int = pickle.load(open(alphabet_pickle, 'rb'))
 
-  def get_cuis(self, file_name):
+  def get_cuis(self, file_name, ignore_negation=True):
     """Return file as a list of CUIs"""
 
     infile = os.path.join(self.corpus_path, file_name)
-    text = open(infile).read().lower()
+    text = open(infile).read().rstrip()
 
-    # source task trained on no-polarity cuis
-    # target task sometimes includes polarity
-    # tokens = [token for token in text.split()]
     tokens = []
     for token in text.split():
-      if token.startswith('-'):
-        tokens.append(token[1:])
+      if ignore_negation and token.startswith(CUI_NEG_PREF):
+        # drop negation for negated CUIs
+        tokens.append(token[len(CUI_NEG_PREF):])
       else:
         tokens.append(token)
 
     return tokens
 
-  def load(self, maxlen=float('inf')):
+  def load_keras(self, maxlen=float('inf')):
     """Convert examples into lists of indices"""
 
     labels = []   # int labels
@@ -60,17 +62,35 @@ class DatasetProvider:
           example = example[0:maxlen]
 
         examples.append(example)
-        labels.append(self.label2int[d])
+        labels.append(self.label2int[d.lower()])
+
+    return examples, labels
+
+  def load_sklearn(self):
+    """Assume each subdir is a separate class"""
+
+    labels = []    # int labels
+    examples = []  # examples as strings
+
+    for d in os.listdir(self.corpus_path):
+      dir_path = os.path.join(self.corpus_path, d)
+
+      for f in os.listdir(dir_path):
+        file_path = os.path.join(dir_path, f)
+        file_feat_list = self.get_cuis(file_path)
+        examples.append(' '.join(file_feat_list))
+        labels.append(self.label2int[d.lower()])
 
     return examples, labels
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
-  data_dir = os.path.join(base, cfg.get('data', 'path'))
+  data_dir = os.path.join(base, cfg.get('data', 'train'))
 
   dataset = DatasetProvider(data_dir)
-  x, y = dataset.load()
-  print y
+  x, y = dataset.load_sklearn()
+  print(x[:3])
+  print(y)

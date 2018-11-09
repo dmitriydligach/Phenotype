@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
 np.random.seed(1337)
@@ -6,7 +6,7 @@ np.random.seed(1337)
 import sys
 sys.path.append('../../Neural/Lib/')
 sys.dont_write_bytecode = True
-import ConfigParser, os
+import configparser, os
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
@@ -35,15 +35,15 @@ warnings.warn = warn
 def print_config(cfg):
   """Print configuration settings"""
 
-  print 'train:', cfg.get('data', 'train_data')
+  print('train:', cfg.get('data', 'train_data'))
   if cfg.has_option('data', 'embed'):
-    print 'embeddings:', cfg.get('data', 'embed')
-  print 'batch:', cfg.get('nn', 'batch')
-  print 'epochs:', cfg.get('nn', 'epochs')
-  print 'embdims:', cfg.get('nn', 'embdims')
-  print 'hidden:', cfg.get('nn', 'hidden')
-  print 'regcoef', cfg.get('nn', 'regcoef')
-  print 'learnrt:', cfg.get('nn', 'learnrt')
+    print('embeddings:', cfg.get('data', 'embed'))
+  print('batch:', cfg.get('nn', 'batch'))
+  print('epochs:', cfg.get('nn', 'epochs'))
+  print('embdims:', cfg.get('nn', 'embdims'))
+  print('hidden:', cfg.get('nn', 'hidden'))
+  print('regcoef', cfg.get('nn', 'regcoef'))
+  print('learnrt:', cfg.get('nn', 'learnrt'))
 
 def get_model(
   cfg,
@@ -92,7 +92,7 @@ def get_embeddings(cfg, token2int):
 def run_cross_validation(disease, judgement):
   """Run n-fold CV on training set"""
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   print_config(cfg)
 
@@ -152,13 +152,13 @@ def run_cross_validation(disease, judgement):
     f1 = f1_score(gold, predictions, average='macro')
     cv_scores.append(f1)
 
-  print 'average f1:', np.mean(cv_scores)
-  print 'standard deviation:', np.std(cv_scores)
+  print('average f1:', np.mean(cv_scores))
+  print('standard deviation:', np.std(cv_scores))
 
 def run_evaluation(disease, judgement):
   """Train on train set and evaluate on test set"""
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   print_config(cfg)
   base = os.environ['DATA_ROOT']
@@ -222,7 +222,7 @@ def run_evaluation(disease, judgement):
 
   # f1 scores
   f1 = f1_score(gold, predictions, average='macro')
-  print '%s: f1 = %.3f' % (disease, f1)
+  print('%s: f1 = %.3f' % (disease, f1))
 
   return f1
 
@@ -231,7 +231,7 @@ def run_evaluation_all_diseases(judgement):
 
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   train_annot = os.path.join(base, cfg.get('data', 'train_annot'))
@@ -241,12 +241,12 @@ def run_evaluation_all_diseases(judgement):
     f1 = run_evaluation(disease, judgement)
     f1s.append(f1)
 
-  print 'average f1 =', np.mean(f1s)
+  print('average f1 =', np.mean(f1s))
 
 def run_joint_evaluation(exclude, judgement):
   """Predict all comorbidities in one pass"""
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   print_config(cfg)
   base = os.environ['DATA_ROOT']
@@ -282,8 +282,8 @@ def run_joint_evaluation(exclude, judgement):
   x_test = pad_sequences(x_test, maxlen=maxlen)
   y_test = np.array(y_test)
 
-  print 'test shape:', x_test.shape, y_test.shape
-  print 'train shape:', x_train.shape, y_train.shape
+  print('test shape:', x_test.shape, y_test.shape)
+  print('train shape:', x_train.shape, y_train.shape)
 
   model = get_model(
     cfg,
@@ -314,9 +314,9 @@ def run_joint_evaluation(exclude, judgement):
   f1 = f1_score(y_test, distribution, average='macro')
   precision = precision_score(y_test, distribution, average='macro')
   recall = recall_score(y_test, distribution, average='macro')
-  print 'macro average p =', precision
-  print 'macro average r =', recall
-  print 'macro average f1 =', f1
+  print('macro average p =', precision)
+  print('macro average r =', recall)
+  print('macro average f1 =', f1)
 
 if __name__ == "__main__":
 

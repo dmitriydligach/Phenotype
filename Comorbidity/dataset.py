@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 import utils, i2b2
 import numpy, pickle
-import ConfigParser, os, nltk, pandas
+import configparser, os, nltk, pandas
 import glob, string, collections, operator
 
 # can be used to turn this into a binary task
@@ -23,7 +23,8 @@ class DatasetProvider:
                judgement,
                use_pickled_alphabet=False,
                alphabet_pickle=None,
-               min_token_freq=0):
+               min_token_freq=0,
+               use_cuis=True):
     """Index words by frequency in a file"""
 
     self.corpus_path = corpus_path
@@ -32,17 +33,20 @@ class DatasetProvider:
     self.disease = disease
     self.judgement = judgement
     self.alphabet_pickle = alphabet_pickle
+    self.use_cuis = use_cuis
 
     self.token2int = {}
 
     # when training, make alphabet and pickle it
     # when testing, load it from pickle
     if use_pickled_alphabet:
-      print 'reading alphabet from', alphabet_pickle
+      print('reading alphabet from', alphabet_pickle)
       pkl = open(alphabet_pickle, 'rb')
       self.token2int = pickle.load(pkl)
-    else:
+    elif alphabet_pickle != None:
       self.make_token_alphabet()
+    else:
+      pass # no alphabet needed
 
   def make_token_alphabet(self):
     """Map tokens (CUIs) to integers"""
@@ -52,7 +56,11 @@ class DatasetProvider:
 
     for f in os.listdir(self.corpus_path):
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_feat_list = None
+      if self.use_cuis:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
       token_counts.update(file_feat_list)
 
     # now make alphabet (high freq tokens first)
@@ -69,7 +77,7 @@ class DatasetProvider:
     pickle_file = open(self.alphabet_pickle, 'wb')
     pickle.dump(self.token2int, pickle_file)
 
-  def load(self, maxlen=float('inf')):
+  def load(self, maxlen=float('inf'), tokens_as_set=True):
     """Convert examples into lists of indices for keras"""
 
     labels = []    # int labels
@@ -86,11 +94,17 @@ class DatasetProvider:
     for f in os.listdir(self.corpus_path):
       doc_id = f.split('.')[0]
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_ngram_list = None
+      if self.use_cuis == True:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
 
       example = []
-      # TODO: use unique tokens or not?
-      for token in set(file_feat_list):
+      if tokens_as_set:
+        file_feat_list = set(file_feat_list)
+
+      for token in file_feat_list:
         if token in self.token2int:
           example.append(self.token2int[token])
         else:
@@ -108,9 +122,9 @@ class DatasetProvider:
       else:
         no_labels.append(doc_id)
 
-    print '%d documents with no labels for %s/%s in %s' \
+    print('%d documents with no labels for %s/%s in %s' \
       % (len(no_labels), self.disease,
-         self.judgement, self.annot_xml.split('/')[-1])
+         self.judgement, self.annot_xml.split('/')[-1]))
     return examples, labels
 
   def load_vectorized(self, exclude, maxlen=float('inf')):
@@ -151,9 +165,9 @@ class DatasetProvider:
       else:
         no_labels.append(doc_id)
 
-    print '%d documents with no labels for %s/%s in %s' \
+    print('%d documents with no labels for %s/%s in %s' \
       % (len(no_labels), self.disease,
-         self.judgement, self.annot_xml.split('/')[-1])
+         self.judgement, self.annot_xml.split('/')[-1]))
     return examples, labels
 
   def load_raw(self):
@@ -172,7 +186,11 @@ class DatasetProvider:
     for f in os.listdir(self.corpus_path):
       doc_id = f.split('.')[0]
       file_path = os.path.join(self.corpus_path, f)
-      file_feat_list = utils.read_cuis(file_path)
+      file_feat_list = None
+      if self.use_cuis == True:
+        file_feat_list = utils.read_cuis(file_path)
+      else:
+        file_feat_list = utils.read_tokens(file_path)
 
       # no labels for some documents for some reason
       if doc_id in doc2label:
@@ -183,14 +201,14 @@ class DatasetProvider:
       else:
         no_labels.append(doc_id)
 
-    print '%d documents with no labels for %s/%s in %s' \
+    print('%d documents with no labels for %s/%s in %s' \
       % (len(no_labels), self.disease,
-         self.judgement, self.annot_xml.split('/')[-1])
+         self.judgement, self.annot_xml.split('/')[-1]))
     return examples, labels
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'train_data'))
@@ -199,5 +217,5 @@ if __name__ == "__main__":
   dataset = DatasetProvider(data_dir, annot_xml)
   exclude = set(['GERD', 'Venous Insufficiency', 'CHF'])
   x, y = dataset.load_vectorized(exclude)
-  print x
-  print y
+  print(x)
+  print(y)

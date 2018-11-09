@@ -5,7 +5,7 @@ sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 import utils
 import numpy, pickle
-import ConfigParser, os, nltk, pandas
+import configparser, os, nltk, pandas
 import glob, string, collections, operator
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
@@ -42,7 +42,7 @@ class TrainSVD:
 if __name__ == "__main__":
 
   base = os.environ['DATA_ROOT']
-  path = 'MimicIII/Patients/Cuis/'
+  path = 'MimicIII/Admissions/Cuis/'
   data_dir = os.path.join(base, path)
 
   dataset = TrainSVD(data_dir, 10000)

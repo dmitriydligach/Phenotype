@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy, pickle
-import ConfigParser, os, nltk, pandas, sys
+import configparser, os, nltk, pandas, sys
 sys.dont_write_bytecode = True
 import glob, string, collections, operator
 
@@ -95,11 +95,11 @@ class DatasetProvider:
 
 if __name__ == "__main__":
 
-  cfg = ConfigParser.ConfigParser()
+  cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
   data_dir = os.path.join(base, cfg.get('data', 'path'))
 
   dataset = DatasetProvider(data_dir)
   x, y = dataset.load()
-  print y
+  print(y)
