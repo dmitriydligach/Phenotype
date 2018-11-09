@@ -140,8 +140,8 @@ def run_evaluation(disease, judgement, grid_search=False):
       classifier,
       param_grid,
       scoring='f1_macro',
+      refit=False,
       cv=2,
-      pre_dispatch=1,
       n_jobs=1)
   else:
     validator = RandomizedSearchCV(
@@ -149,6 +149,7 @@ def run_evaluation(disease, judgement, grid_search=False):
       param_grid,
       n_iter=5,
       scoring='f1_macro',
+      refit=False,
       n_jobs=1,
       cv=2)
 
