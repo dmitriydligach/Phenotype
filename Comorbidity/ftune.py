@@ -26,6 +26,7 @@ from keras.models import Model, Sequential
 from keras.layers.core import Dense
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras import regularizers
+from keras import backend as K
 from dataset import DatasetProvider
 import i2b2
 
@@ -69,43 +70,6 @@ def get_maxlen():
 
   pretrained_model = load_model(cfg.get('data', 'model_file'))
   return pretrained_model.get_layer(name='EL').get_config()['input_length']
-
-def run_evaluation(disease, judgement):
-  """Use pre-trained patient representations"""
-
-  print('disease:', disease)
-  x_train, y_train, x_test, y_test = get_data(disease, judgement)
-  num_classes = len(set(y_train))
-
-  # run a grid search
-  classifier = KerasClassifier(
-    make_model,
-    output_classes=num_classes,
-    verbose=0)
-  param_grid = {
-    'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    'epochs':[3, 5, 10, 15, 20, 25]}
-  validator = GridSearchCV(
-    classifier,
-    param_grid,
-    scoring='f1_macro',
-    cv=2,
-    n_jobs=1)
-  validator.fit(x_train, y_train)
-  print('best param:', validator.best_params_)
-
-  # train with best params and evaluate
-  model = make_model(validator.best_params_['c'], num_classes)
-  model.fit(x_train, y_train, epochs=validator.best_params_['epochs'])
-  distribution = model.predict(x_test)
-  predictions = np.argmax(distribution, axis=1)
-
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
-
-  return p, r, f1
 
 def get_data(disease, judgement):
   """Sequences of tokens to feed into code prediction model"""
@@ -151,6 +115,43 @@ def get_data(disease, judgement):
   x_test = pad_sequences(x_test, maxlen=get_maxlen())
 
   return x_train, y_train, x_test, y_test
+
+def run_evaluation(disease, judgement):
+  """Use pre-trained patient representations"""
+
+  print('disease:', disease)
+  x_train, y_train, x_test, y_test = get_data(disease, judgement)
+  num_classes = len(set(y_train))
+
+  # run a grid search
+  classifier = KerasClassifier(
+    make_model,
+    output_classes=num_classes,
+    verbose=0)
+  param_grid = {
+    'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
+    'epochs':[3, 5, 10, 15, 20, 25]}
+  validator = GridSearchCV(
+    classifier,
+    param_grid,
+    scoring='f1_macro',
+    cv=2,
+    n_jobs=1)
+  validator.fit(x_train, y_train)
+  print('best param:', validator.best_params_)
+
+  # train with best params and evaluate
+  model = make_model(validator.best_params_['c'], num_classes)
+  model.fit(x_train, y_train, epochs=validator.best_params_['epochs'])
+  distribution = model.predict(x_test)
+  predictions = np.argmax(distribution, axis=1)
+
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+
+  return p, r, f1
 
 def run_evaluation_all_diseases():
   """Evaluate classifier performance for all 16 comorbidities"""
