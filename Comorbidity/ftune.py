@@ -26,7 +26,6 @@ from keras.models import Model, Sequential
 from keras.layers.core import Dense
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras import regularizers
-from keras import backend as K
 from dataset import DatasetProvider
 import i2b2
 
@@ -136,6 +135,7 @@ def run_evaluation(disease, judgement):
     param_grid,
     scoring='f1_macro',
     cv=2,
+    pre_dispatch=1,
     n_jobs=1)
   validator.fit(x_train, y_train)
   print('best param:', validator.best_params_)
