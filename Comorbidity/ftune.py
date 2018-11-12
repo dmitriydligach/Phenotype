@@ -24,7 +24,8 @@ from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
 from keras.models import load_model
 from keras.models import Model, Sequential
-from keras.layers.core import Dense
+from keras.layers.core import Dense, Dropout
+from keras.optimizers import RMSprop
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras import regularizers
 from dataset import DatasetProvider
@@ -36,10 +37,15 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def make_model(c, output_classes, interm_layer_model_trainable=True):
+def make_model(
+  c,
+  dropout,
+  lr,
+  output_classes,
+  interm_layer_model_trainable=True):
   """Model definition"""
 
-  print('making model: c=%s, outputs=%s' % (c, output_classes))
+  # print('making model: c=%s, outputs=%s' % (c, output_classes))
 
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
@@ -55,14 +61,16 @@ def make_model(c, output_classes, interm_layer_model_trainable=True):
   # add logistic regression layer
   model = Sequential()
   model.add(interm_layer_model)
+  model.add(Dropout(dropout))
   model.add(Dense(
     output_classes,
     activation='softmax',
     kernel_regularizer=regularizers.l2(c)))
 
+  optimizer = RMSprop(lr=lr)
   model.compile(
     loss='sparse_categorical_crossentropy',
-    optimizer='rmsprop',
+    optimizer=optimizer,
     metrics=['accuracy'])
 
   return model
@@ -118,7 +126,7 @@ def get_data(disease, judgement):
 
   return x_train, y_train, x_test, y_test
 
-def run_evaluation(disease, judgement, grid_search=False):
+def run_evaluation(disease, judgement):
   """Use pre-trained patient representations"""
 
   print('disease:', disease)
@@ -133,9 +141,11 @@ def run_evaluation(disease, judgement, grid_search=False):
 
   param_grid = {
     'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
+    'dropout':[0.25, 0.5],
+    'lr':[0.001, 0.01],
     'epochs':[3, 5, 10, 15, 20, 25]}
 
-  if grid_search:
+  if cfg.get('data', 'search') == 'grid':
     validator = GridSearchCV(
       classifier,
       param_grid,
@@ -143,21 +153,28 @@ def run_evaluation(disease, judgement, grid_search=False):
       refit=False,
       cv=2,
       n_jobs=1)
-  else:
+  elif cfg.get('data', 'search') == 'random':
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
-      n_iter=5,
+      n_iter=10,
       scoring='f1_macro',
       refit=False,
       n_jobs=1,
       cv=2)
+  else:
+    print('option not valid:', cfg.get('data', 'search'))
+    exit()
 
   validator.fit(x_train, y_train)
   print('best param:', validator.best_params_)
 
   # train with best params and evaluate
-  model = make_model(validator.best_params_['c'], num_classes)
+  model = make_model(
+    validator.best_params_['c'],
+    validator.best_params_['dropout'],
+    validator.best_params_['lr'],
+    num_classes)
   model.fit(
     x_train,
     y_train,
