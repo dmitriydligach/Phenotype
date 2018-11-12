@@ -137,11 +137,12 @@ def run_evaluation(disease, judgement):
   classifier = KerasClassifier(
     make_model,
     output_classes=num_classes,
+    batch_size=4,
     verbose=0)
 
   param_grid = {
     'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    'dropout':[0.25, 0.5],
+    'dropout':[0.0, 0.25, 0.5],
     'lr':[0.001, 0.01],
     'epochs':[3, 5, 10, 15, 20, 25]}
 
