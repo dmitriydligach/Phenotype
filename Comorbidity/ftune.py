@@ -67,10 +67,9 @@ def make_model(
     activation='softmax',
     kernel_regularizer=regularizers.l2(c)))
 
-  optimizer = RMSprop(lr=lr)
   model.compile(
     loss='sparse_categorical_crossentropy',
-    optimizer=optimizer,
+    optimizer=RMSprop(lr=lr),
     metrics=['accuracy'])
 
   return model
@@ -135,11 +134,12 @@ def run_evaluation(disease, judgement):
 
   # run a grid search
   classifier = KerasClassifier(
-    make_model,
+    build_fn=make_model,
     output_classes=num_classes,
-    batch_size=4,
+    batch_size=2,
     verbose=0)
 
+  # TODO: add batch size?
   param_grid = {
     'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
     'dropout':[0.0, 0.25, 0.5],
@@ -167,7 +167,7 @@ def run_evaluation(disease, judgement):
     print('option not valid:', cfg.get('data', 'search'))
     exit()
 
-  validator.fit(x_train, y_train)
+  validator.fit(x_train, y_train, batch_size=2)
   print('best param:', validator.best_params_)
 
   # train with best params and evaluate
@@ -179,6 +179,7 @@ def run_evaluation(disease, judgement):
   model.fit(
     x_train,
     y_train,
+    batch_size=2,
     epochs=validator.best_params_['epochs'],
     verbose=0)
   distribution = model.predict(x_test)
