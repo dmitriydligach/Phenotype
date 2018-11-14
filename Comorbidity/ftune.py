@@ -42,10 +42,8 @@ def make_model(
   dropout,
   lr,
   output_classes,
-  interm_layer_model_trainable=True):
+  code_model_trainable=False):
   """Model definition"""
-
-  # print('making model: c=%s, outputs=%s' % (c, output_classes))
 
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
@@ -54,9 +52,8 @@ def make_model(
                              outputs=pretrained_model.get_layer(rl).output)
 
   # freeze the pretrained weights if specified
-  if not interm_layer_model_trainable:
-    for layer in interm_layer_model.layers:
-      layer.trainable = False
+  for layer in interm_layer_model.layers:
+    layer.trainable = code_model_trainable
 
   # add logistic regression layer
   model = Sequential()
