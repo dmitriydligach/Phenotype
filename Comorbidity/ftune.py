@@ -147,6 +147,7 @@ def run_evaluation(disease, judgement):
     'epochs':[3, 5, 10, 15, 20, 25]}
 
   if cfg.get('data', 'search') == 'grid':
+    # run a grid search
     validator = GridSearchCV(
       classifier,
       param_grid,
@@ -154,7 +155,15 @@ def run_evaluation(disease, judgement):
       refit=False,
       cv=2,
       n_jobs=1)
+
+    validator.fit(x_train, y_train, batch_size=2)
+    c = validator.best_params_['c']
+    dropout = validator.best_params_['dropout']
+    lr = validator.best_params_['lr']
+    epochs = validator.best_params_['epochs']
+
   elif cfg.get('data', 'search') == 'random':
+    # run a random search
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
@@ -163,24 +172,27 @@ def run_evaluation(disease, judgement):
       refit=False,
       n_jobs=1,
       cv=2)
-  else:
-    print('option not valid:', cfg.get('data', 'search'))
-    exit()
 
-  validator.fit(x_train, y_train, batch_size=2)
-  print('best param:', validator.best_params_)
+    validator.fit(x_train, y_train, batch_size=2)
+    c = validator.best_params_['c']
+    dropout = validator.best_params_['dropout']
+    lr = validator.best_params_['lr']
+    epochs = validator.best_params_['epochs']
+
+  else:
+    # use default hyperparameters
+    c = 1
+    dropout = 0.25
+    lr = 0.001
+    epochs = 10
 
   # train with best params and evaluate
-  model = make_model(
-    validator.best_params_['c'],
-    validator.best_params_['dropout'],
-    validator.best_params_['lr'],
-    num_classes)
+  model = make_model(c, dropout, lr, num_classes)
   model.fit(
     x_train,
     y_train,
     batch_size=2,
-    epochs=validator.best_params_['epochs'],
+    epochs=epochs,
     verbose=0)
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
