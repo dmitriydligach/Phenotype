@@ -42,7 +42,7 @@ def make_model(
   dropout,
   lr,
   output_classes,
-  code_model_trainable=False):
+  code_model_trainable=True):
   """Model definition"""
 
   # load pretrained code prediction model
@@ -144,7 +144,7 @@ def run_evaluation(disease, judgement):
     'epochs':[3, 5, 10, 15, 20, 25]}
 
   if cfg.get('data', 'search') == 'grid':
-    # run a grid search
+    print('running a grid search...')
     validator = GridSearchCV(
       classifier,
       param_grid,
@@ -160,7 +160,7 @@ def run_evaluation(disease, judgement):
     epochs = validator.best_params_['epochs']
 
   elif cfg.get('data', 'search') == 'random':
-    # run a random search
+    print('running a random search...')
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
@@ -177,11 +177,11 @@ def run_evaluation(disease, judgement):
     epochs = validator.best_params_['epochs']
 
   else:
-    # use default hyperparameters
+    print('using default hyperparameters...')
     c = 1
     dropout = 0.25
     lr = 0.001
-    epochs = 10
+    epochs = 3
 
   # train with best params and evaluate
   model = make_model(c, dropout, lr, num_classes)
