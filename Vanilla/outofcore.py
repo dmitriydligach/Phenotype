@@ -39,15 +39,14 @@ def get_paths_to_files(path):
 
   return paths
 
-def get_minibatch(paths):
+def get_minibatch(paths, iterations=100, batch_size=10):
   """Simulate batch fetching"""
 
   texts = []
   labels = []
 
-  for _ in range(10):
-    for path in random.sample(paths, 100):
-
+  for _ in range(iterations):
+    for path in random.sample(paths, batch_size):
       text = open(path).read().rstrip()
       label = path.split('/')[-2]
       texts.append(text)
@@ -64,17 +63,20 @@ def train_and_test():
   classifier = SGDClassifier(loss='log')
   vectorizer = HashingVectorizer(n_features=25000)
 
-  for train_x, train_y in get_minibatch(all_paths):
-    train_x = vectorizer.transform(train_x)
-    classifier.partial_fit(train_x, train_y, classes=classes)
-
   test_x, test_y = utils.load(test_path)
   test_x = vectorizer.transform(test_x)
-  predicted = classifier.predict(test_x)
-  p = precision_score(test_y, predicted, average='macro')
-  r = recall_score(test_y, predicted, average='macro')
-  f1 = f1_score(test_y, predicted, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+
+  for train_x, train_y in get_minibatch(all_paths):
+
+    train_x = vectorizer.transform(train_x)
+    classifier.partial_fit(train_x, train_y, classes=classes)
+    predicted = classifier.predict(test_x)
+
+    p = precision_score(test_y, predicted, average='macro')
+    r = recall_score(test_y, predicted, average='macro')
+    f1 = f1_score(test_y, predicted, average='macro')
+
+    print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
 if __name__ == "__main__":
 
