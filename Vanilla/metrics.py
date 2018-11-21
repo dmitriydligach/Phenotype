@@ -15,6 +15,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+import utils
 
 train_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_cuis/'
 test_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_test_cuis/'
@@ -25,26 +26,10 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def load(path):
-  """Assume each subdir is a separate class"""
-
-  labels = []    # string labels
-  examples = []  # examples as strings
-
-  for sub_dir in os.listdir(path):
-    sub_dir_path = os.path.join(path, sub_dir)
-    for f in os.listdir(sub_dir_path):
-      file_path = os.path.join(path, sub_dir, f)
-      text = open(file_path).read().rstrip()
-      examples.append(text)
-      labels.append(sub_dir)
-
-  return examples, labels
-
 def nfoldcv(metric='f1', pos_class='yes'):
   """Run n-fold cross-validation"""
 
-  train_examples, train_labels = load(train_path)
+  train_examples, train_labels = utils.load(train_path)
 
   labelEncoder = LabelEncoder()
   labelEncoder.fit(train_labels)
@@ -66,8 +51,8 @@ def nfoldcv(metric='f1', pos_class='yes'):
 def roc(pos_class='yes'):
   """Get ROC curve"""
 
-  train_examples, train_labels = load(train_path)
-  test_examples, test_labels = load(test_path)
+  train_examples, train_labels = utils.load(train_path)
+  test_examples, test_labels = utils.load(test_path)
 
   labelEncoder = LabelEncoder()
   labelEncoder.fit(train_labels)
@@ -89,8 +74,8 @@ def roc(pos_class='yes'):
 def f1(pos_class='yes'):
   """Train SVM and compute p, r, and f1"""
 
-  train_examples, train_labels = load(train_path)
-  test_examples, test_labels = load(test_path)
+  train_examples, train_labels = utils.load(train_path)
+  test_examples, test_labels = utils.load(test_path)
 
   vectorizer = TfidfVectorizer()
   train_tfidf_matrix = vectorizer.fit_transform(train_examples)

@@ -17,6 +17,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+import utils
 
 train_path = '/Users/Dima/Loyola/Data/Opioids/Train'
 test_path = '/Users/Dima/Loyola/Data/Opioids/Test'
@@ -26,22 +27,6 @@ def warn(*args, **kwargs):
   pass
 import warnings
 warnings.warn = warn
-
-def load(path):
-  """Assume each subdir is a separate class"""
-
-  labels = []    # string labels
-  examples = []  # examples as strings
-
-  for sub_dir in os.listdir(path):
-    sub_dir_path = os.path.join(path, sub_dir)
-    for f in os.listdir(sub_dir_path):
-      file_path = os.path.join(path, sub_dir, f)
-      text = open(file_path).read().rstrip()
-      examples.append(text)
-      labels.append(sub_dir)
-
-  return examples, labels
 
 def grid_search(x, y, scoring='f1_macro'):
   """Find best model and fit it"""
@@ -58,8 +43,8 @@ def grid_search(x, y, scoring='f1_macro'):
 def f1(use_hash_vect=True):
   """Train SVM and compute p, r, and f1"""
 
-  train_x, train_y = load(train_path)
-  test_x, test_y = load(test_path)
+  train_x, train_y = utils.load(train_path)
+  test_x, test_y = utils.load(test_path)
 
   if use_hash_vect:
     vectorizer = HashingVectorizer(n_features=50000)
