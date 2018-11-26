@@ -39,7 +39,7 @@ def get_paths_to_files(path):
 
   return paths
 
-def get_minibatch(paths, iterations=100, batch_size=10):
+def get_minibatch(paths, iterations=300, batch_size=10):
   """Simulate batch fetching"""
 
   texts = []
@@ -53,6 +53,7 @@ def get_minibatch(paths, iterations=100, batch_size=10):
       labels.append(label)
 
     yield texts, labels
+    texts, labels = [], []
 
 def train_and_test():
   """Train using mini-batches"""
@@ -60,7 +61,7 @@ def train_and_test():
   classes = numpy.array(['Yes', 'No'])
   all_paths = get_paths_to_files(train_path)
 
-  classifier = SGDClassifier(loss='log')
+  classifier = SGDClassifier(loss='hinge')
   vectorizer = HashingVectorizer(n_features=25000)
 
   test_x, test_y = utils.load(test_path)
