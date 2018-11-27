@@ -38,7 +38,6 @@ import warnings
 warnings.warn = warn
 
 def make_model(
-  c,
   dropout,
   lr,
   output_classes,
@@ -59,10 +58,7 @@ def make_model(
   model = Sequential()
   model.add(interm_layer_model)
   model.add(Dropout(dropout))
-  model.add(Dense(
-    output_classes,
-    activation='softmax',
-    kernel_regularizer=regularizers.l2(c)))
+  model.add(Dense(output_classes, activation='softmax'))
 
   model.compile(
     loss='sparse_categorical_crossentropy',
@@ -94,7 +90,7 @@ def get_data(disease, judgement):
     use_cuis = False
     tokens_as_set = False
 
-  # load training data first
+  # load training data
   train_data_provider = DatasetProvider(
     train_data,
     train_annot,
@@ -107,7 +103,7 @@ def get_data(disease, judgement):
   x_train, y_train = train_data_provider.load(tokens_as_set=tokens_as_set)
   x_train = pad_sequences(x_train, maxlen=get_maxlen())
 
-  # now load the test set
+  # load the test set
   test_data_provider = DatasetProvider(
     test_data,
     test_annot,
@@ -133,15 +129,14 @@ def run_evaluation(disease, judgement):
   classifier = KerasClassifier(
     build_fn=make_model,
     output_classes=num_classes,
-    batch_size=2,
+    batch_size=32,
     verbose=0)
 
   # TODO: add batch size?
   param_grid = {
-    'c':[0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    'dropout':[0.0, 0.25, 0.5],
-    'lr':[0.001, 0.01],
-    'epochs':[3, 5, 10, 15, 20, 25]}
+    'dropout':[0.1, 0.2, 0.3, 0.4, 0.5],
+    'lr':[0.0001, 0.001, 0.01],
+    'epochs':[2, 3, 5, 7, 10, 15, 20, 25]}
 
   if cfg.get('data', 'search') == 'grid':
     print('running a grid search...')
@@ -153,8 +148,8 @@ def run_evaluation(disease, judgement):
       cv=2,
       n_jobs=1)
 
-    validator.fit(x_train, y_train, batch_size=2)
-    c = validator.best_params_['c']
+    validator.fit(x_train, y_train, batch_size=32)
+    print('best params:', validator.best_params_)
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
     epochs = validator.best_params_['epochs']
@@ -164,31 +159,31 @@ def run_evaluation(disease, judgement):
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
-      n_iter=10,
+      n_iter=25,
       scoring='f1_macro',
       refit=False,
       n_jobs=1,
-      cv=2)
+      cv=2,
+      verbose=1)
 
-    validator.fit(x_train, y_train, batch_size=2)
-    c = validator.best_params_['c']
+    validator.fit(x_train, y_train, batch_size=32)
+    print('best params:', validator.best_params_)
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
     epochs = validator.best_params_['epochs']
 
   else:
     print('using default hyperparameters...')
-    c = 1
     dropout = 0.25
     lr = 0.001
     epochs = 3
 
   # train with best params and evaluate
-  model = make_model(c, dropout, lr, num_classes)
+  model = make_model(dropout, lr, num_classes)
   model.fit(
     x_train,
     y_train,
-    batch_size=2,
+    batch_size=32,
     epochs=epochs,
     verbose=0)
   distribution = model.predict(x_test)
