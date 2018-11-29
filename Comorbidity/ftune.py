@@ -148,8 +148,8 @@ def run_evaluation(disease, judgement):
       refit=False,
       cv=2,
       n_jobs=1)
+    validator.fit(x_train, y_train)
 
-    validator.fit(x_train, y_train, batch_size=32)
     print('best params:', validator.best_params_)
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
@@ -167,8 +167,8 @@ def run_evaluation(disease, judgement):
       n_jobs=1,
       cv=2,
       verbose=1)
-
-    validator.fit(x_train, y_train, batch_size=32)
+    validator.fit(x_train, y_train)
+    
     print('best params:', validator.best_params_)
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
