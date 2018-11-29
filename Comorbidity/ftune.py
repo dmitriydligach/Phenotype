@@ -37,42 +37,6 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def make_model(
-  dropout,
-  lr,
-  output_classes,
-  code_model_trainable=True):
-  """Model definition"""
-
-  # load pretrained code prediction model
-  rl = cfg.get('data', 'rep_layer')
-  pretrained_model = load_model(cfg.get('data', 'model_file'))
-  interm_layer_model = Model(inputs=pretrained_model.input,
-                             outputs=pretrained_model.get_layer(rl).output)
-
-  # freeze the pretrained weights if specified
-  for layer in interm_layer_model.layers:
-    layer.trainable = code_model_trainable
-
-  # add logistic regression layer
-  model = Sequential()
-  model.add(interm_layer_model)
-  model.add(Dropout(dropout))
-  model.add(Dense(output_classes, activation='softmax'))
-
-  model.compile(
-    loss='sparse_categorical_crossentropy',
-    optimizer=RMSprop(lr=lr),
-    metrics=['accuracy'])
-
-  return model
-
-def get_maxlen():
-  """Obtain max sequence length from saved model"""
-
-  pretrained_model = load_model(cfg.get('data', 'model_file'))
-  return pretrained_model.get_layer(name='EL').get_config()['input_length']
-
 def get_data(disease, judgement):
   """Sequences of tokens to feed into code prediction model"""
 
@@ -118,6 +82,42 @@ def get_data(disease, judgement):
 
   return x_train, y_train, x_test, y_test
 
+def get_maxlen():
+  """Obtain max sequence length from saved model"""
+
+  pretrained_model = load_model(cfg.get('data', 'model_file'))
+  return pretrained_model.get_layer(name='EL').get_config()['input_length']
+
+def make_model(
+  dropout,
+  lr,
+  output_classes,
+  code_model_trainable=True):
+  """Model definition"""
+
+  # load pretrained code prediction model
+  rl = cfg.get('data', 'rep_layer')
+  pretrained_model = load_model(cfg.get('data', 'model_file'))
+  interm_layer_model = Model(inputs=pretrained_model.input,
+                             outputs=pretrained_model.get_layer(rl).output)
+
+  # freeze the pretrained weights if specified
+  for layer in interm_layer_model.layers:
+    layer.trainable = code_model_trainable
+
+  # add logistic regression layer
+  model = Sequential()
+  model.add(interm_layer_model)
+  model.add(Dropout(dropout))
+  model.add(Dense(output_classes, activation='softmax'))
+
+  model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer=RMSprop(lr=lr),
+    metrics=['accuracy'])
+
+  return model
+
 def run_evaluation(disease, judgement):
   """Use pre-trained patient representations"""
 
@@ -140,6 +140,7 @@ def run_evaluation(disease, judgement):
 
   if cfg.get('data', 'search') == 'grid':
     print('running a grid search...')
+
     validator = GridSearchCV(
       classifier,
       param_grid,
@@ -156,6 +157,7 @@ def run_evaluation(disease, judgement):
 
   elif cfg.get('data', 'search') == 'random':
     print('running a random search...')
+
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
