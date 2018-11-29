@@ -89,9 +89,9 @@ def get_maxlen():
   return pretrained_model.get_layer(name='EL').get_config()['input_length']
 
 def make_model(
-  dropout,
-  lr,
-  output_classes,
+  output_classes=3,
+  dropout=0.25,
+  lr=0.001,
   code_model_trainable=True):
   """Model definition"""
 
@@ -123,20 +123,18 @@ def run_evaluation(disease, judgement):
 
   print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
-  num_classes = len(set(y_train))
 
-  # run a grid search
+  # wrap keras model for sklearn
   classifier = KerasClassifier(
     build_fn=make_model,
-    output_classes=num_classes,
-    batch_size=32,
+    output_classes=len(set(y_train)),
     verbose=0)
 
-  # TODO: add batch size?
   param_grid = {
-    'dropout':[0.1, 0.2, 0.3, 0.4, 0.5],
-    'lr':[0.0001, 0.001, 0.01],
-    'epochs':[2, 3, 5, 7, 10, 15, 20, 25]}
+    'dropout': [0.1, 0.2, 0.3, 0.4, 0.5],
+    'lr': [0.0001, 0.001, 0.01],
+    'epochs': [2, 3, 5, 7, 10, 15, 20, 25],
+    'batch_size': [2, 4, 8, 16, 32]}
 
   if cfg.get('data', 'search') == 'grid':
     print('running a grid search...')
@@ -154,6 +152,7 @@ def run_evaluation(disease, judgement):
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
     epochs = validator.best_params_['epochs']
+    batch_size = validator.best_params_['batch_size']
 
   elif cfg.get('data', 'search') == 'random':
     print('running a random search...')
@@ -166,27 +165,32 @@ def run_evaluation(disease, judgement):
       refit=False,
       n_jobs=1,
       cv=2,
-      verbose=1)
+      verbose=2)
     validator.fit(x_train, y_train)
-    
+
     print('best params:', validator.best_params_)
     dropout = validator.best_params_['dropout']
     lr = validator.best_params_['lr']
     epochs = validator.best_params_['epochs']
+    batch_size = validator.best_params_['batch_size']
 
   else:
     print('using default hyperparameters...')
     dropout = 0.25
     lr = 0.001
     epochs = 3
+    batch_size = 32
 
   # train with best params and evaluate
-  model = make_model(dropout, lr, num_classes)
+  model = make_model(
+    output_classes=len(set(y_train)),
+    dropout=dropout,
+    lr=lr)
   model.fit(
     x_train,
     y_train,
-    batch_size=32,
     epochs=epochs,
+    batch_size=batch_size,
     verbose=0)
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
