@@ -96,9 +96,8 @@ def make_model(
   code_model_trainable=True):
   """Model definition"""
 
-  gc.collect()
   K.clear_session()
-  
+
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
   pretrained_model = load_model(cfg.get('data', 'model_file'))
@@ -137,9 +136,9 @@ def run_evaluation(disease, judgement):
     verbose=0)
 
   param_grid = {
-    'dropout': [0.1, 0.2, 0.3, 0.4, 0.5],
-    'lr': [0.0001, 0.001, 0.01],
-    'epochs': [2, 3, 5, 7, 10, 15, 20, 25],
+    'dropout': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+    'lr': [0.0001, 0.001, 0.01, 0.005],
+    'epochs': [2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30, 50],
     'batch_size': [2, 4, 8, 16, 32]}
 
   if cfg.get('data', 'search') == 'grid':
