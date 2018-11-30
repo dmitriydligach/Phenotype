@@ -96,6 +96,7 @@ def make_model(
   code_model_trainable=True):
   """Model definition"""
 
+  gc.collect()
   K.clear_session()
 
   # load pretrained code prediction model
@@ -165,7 +166,7 @@ def run_evaluation(disease, judgement):
     validator = RandomizedSearchCV(
       classifier,
       param_grid,
-      n_iter=25,
+      n_iter=100,
       scoring='f1_macro',
       refit=False,
       n_jobs=1,
