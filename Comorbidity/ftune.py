@@ -123,6 +123,8 @@ def run_evaluation(disease, judgement):
 
   print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
+  print('x train shape:', x_train.shape)
+  print('x test shape:', x_test.shape)
 
   # wrap keras model for sklearn
   classifier = KerasClassifier(
@@ -176,6 +178,7 @@ def run_evaluation(disease, judgement):
 
   else:
     print('using default hyperparameters...')
+
     dropout = 0.25
     lr = 0.001
     epochs = 3
