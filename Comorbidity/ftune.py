@@ -8,7 +8,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import sys
 sys.dont_write_bytecode = True
-import configparser, pickle
+import configparser, pickle, gc
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -19,6 +19,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from keras import backend as K
 from sklearn.decomposition import TruncatedSVD
 from keras.preprocessing.sequence import pad_sequences
 from keras.utils.np_utils import to_categorical
@@ -95,6 +96,9 @@ def make_model(
   code_model_trainable=True):
   """Model definition"""
 
+  gc.collect()
+  K.clear_session()
+  
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
   pretrained_model = load_model(cfg.get('data', 'model_file'))
