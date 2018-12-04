@@ -28,6 +28,9 @@ from keras.models import Model, Sequential
 from keras.layers.core import Dense, Dropout
 from keras.optimizers import RMSprop
 from keras.wrappers.scikit_learn import KerasClassifier
+from scipy.stats import uniform
+# from scipy.stats import randint
+from scipy.stats import randint as randint
 from keras import regularizers
 from dataset import DatasetProvider
 import i2b2
@@ -136,14 +139,14 @@ def run_evaluation(disease, judgement):
     output_classes=len(set(y_train)),
     verbose=0)
 
-  param_grid = {
-    'dropout': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-    'lr': [0.0001, 0.001, 0.01, 0.005],
-    'epochs': [2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30, 50],
-    'batch_size': [2, 4, 8, 16, 32]}
-
   if cfg.get('data', 'search') == 'grid':
     print('running a grid search...')
+
+    param_grid = {
+      'dropout': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
+      'lr': [0.0001, 0.001, 0.01, 0.005],
+      'epochs': [2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30, 50],
+      'batch_size': [2, 4, 8, 16, 32]}
 
     validator = GridSearchCV(
       classifier,
@@ -163,15 +166,21 @@ def run_evaluation(disease, judgement):
   elif cfg.get('data', 'search') == 'random':
     print('running a random search...')
 
+    param_space = {
+      'dropout': uniform(0, 1),
+      'lr': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+      'epochs': randint(1, 75),
+      'batch_size': [2, 4, 8, 16, 32]}
+
     validator = RandomizedSearchCV(
       classifier,
-      param_grid,
+      param_space,
       n_iter=100,
       scoring='f1_macro',
       refit=False,
       n_jobs=1,
       cv=2,
-      verbose=2)
+      verbose=0)
     validator.fit(x_train, y_train)
 
     print('best params:', validator.best_params_)
