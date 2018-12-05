@@ -101,6 +101,7 @@ def make_model(
 
   gc.collect()
   K.clear_session()
+  print('classes: %d, dropout: %0.6f, lr=%.6f' % (output_classes, dropout, lr))
 
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
@@ -153,8 +154,7 @@ def run_evaluation(disease, judgement):
       param_grid,
       scoring='f1_macro',
       refit=False,
-      cv=2,
-      n_jobs=1)
+      cv=cfg.getint('data', 'cv'))
     validator.fit(x_train, y_train)
 
     print('best params:', validator.best_params_)
@@ -169,18 +169,17 @@ def run_evaluation(disease, judgement):
     param_space = {
       'dropout': uniform(0, 1),
       'lr': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-      'epochs': randint(1, 75),
+      'epochs': randint(3, 75),
       'batch_size': [2, 4, 8, 16, 32]}
 
     validator = RandomizedSearchCV(
       classifier,
       param_space,
-      n_iter=100,
+      n_iter=cfg.getint('data', 'n_iter'),
       scoring='f1_macro',
       refit=False,
-      n_jobs=1,
-      cv=2,
-      verbose=0)
+      cv=cfg.getint('data', 'cv'),
+      verbose=cfg.getint('data', 'verbose'))
     validator.fit(x_train, y_train)
 
     print('best params:', validator.best_params_)
