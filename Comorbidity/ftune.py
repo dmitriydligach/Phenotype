@@ -101,7 +101,7 @@ def make_model(
 
   gc.collect()
   K.clear_session()
-  print('classes: %d, dropout: %0.6f, lr=%.6f' % (output_classes, dropout, lr))
+  # print('classes: %d, dropout: %f, lr=%f' % (output_classes, dropout, lr))
 
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
@@ -167,7 +167,7 @@ def run_evaluation(disease, judgement):
     print('running a random search...')
 
     param_space = {
-      'dropout': uniform(0, 1),
+      'dropout': uniform(0, 0.75),
       'lr': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
       'epochs': randint(3, 75),
       'batch_size': [2, 4, 8, 16, 32]}
