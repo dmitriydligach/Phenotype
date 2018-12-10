@@ -29,8 +29,7 @@ from keras.layers.core import Dense, Dropout
 from keras.optimizers import RMSprop
 from keras.wrappers.scikit_learn import KerasClassifier
 from scipy.stats import uniform
-# from scipy.stats import randint
-from scipy.stats import randint as randint
+from scipy.stats import randint
 from keras import regularizers
 from dataset import DatasetProvider
 import i2b2
