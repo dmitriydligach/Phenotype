@@ -27,7 +27,7 @@ from keras.models import load_model
 from keras.models import Model, Sequential
 from keras.layers.core import Dense, Dropout
 from keras.optimizers import RMSprop
-from keras.wrappers.scikit_learn import KerasClassifier
+from scikit_learn import FixedKerasClassifier
 from scipy.stats import uniform
 from scipy.stats import randint
 from keras import regularizers
@@ -130,11 +130,12 @@ def run_evaluation(disease, judgement):
 
   print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
-  print('x train shape:', x_train.shape)
-  print('x test shape:', x_test.shape)
+  print('x_train shape:', x_train.shape)
+  print('x_test shape:', x_test.shape)
+  print('classes:', len(set(y_train)))
 
   # wrap keras model for sklearn
-  classifier = KerasClassifier(
+  classifier = FixedKerasClassifier(
     build_fn=make_model,
     output_classes=len(set(y_train)),
     verbose=0)
