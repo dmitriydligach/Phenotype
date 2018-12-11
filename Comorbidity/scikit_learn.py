@@ -14,14 +14,21 @@ class FixedKerasClassifier(KerasClassifier):
     """Fixed version of fit method"""
 
     y = np.array(y)
-    print('fit / y.shape', y.shape)
 
     if len(y.shape) == 2 and y.shape[1] > 1:
       self.classes_ = np.arange(y.shape[1])
-      print("fit / inside if self.classes_:", self.classes_)
     elif (len(y.shape) == 2 and y.shape[1] == 1) or len(y.shape) == 1:
-      self.classes_ = np.unique(y)
-      print("fit / inside ELIF self.classes_:", self.classes_)
+
+      # line below is a problem when y doesn't contain all labels
+      # for a particular split since the missing label can be predicted
+      # in my case, when there are 3 outputs, sometimes the third label
+      # is not in the training data since it's rare in i2b2 data
+
+      # self.classes_ = np.unique(y)
+
+      # ugly fix for now
+      self.classes_ = np.array([0, 1, 2])
+
       y = np.searchsorted(self.classes_, y)
     else:
       raise ValueError('Invalid shape for y: ' + str(y.shape))
@@ -30,24 +37,6 @@ class FixedKerasClassifier(KerasClassifier):
       kwargs['sample_weight'] = sample_weight
 
     return super(KerasClassifier, self).fit(x, y, **kwargs)
-
-  def predict(self, x, **kwargs):
-    """Fix version of predict method"""
-
-    kwargs = self.filter_sk_params(Sequential.predict_classes, kwargs)
-
-    proba = self.model.predict(x, **kwargs)
-    print("proba shape:", proba.shape)
-    # print("self classes_:", self.classes_)
-
-    if proba.shape[-1] > 1:
-        classes = proba.argmax(axis=-1)
-        print('predict / inside if classes:', classes[:10])
-    else:
-        classes = (proba > 0.5).astype('int32')
-        print('predict / inside else classes:', classes[:10])
-
-    return self.classes_[classes]
 
 if __name__ == "__main__":
 
