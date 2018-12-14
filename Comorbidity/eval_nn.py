@@ -94,8 +94,7 @@ def get_maxlen():
 def make_model(
   output_classes=3,
   dropout=0.25,
-  lr=0.001,
-  code_model_trainable=True):
+  lr=0.001):
   """Model definition"""
 
   gc.collect()
@@ -110,7 +109,7 @@ def make_model(
 
   # freeze the pretrained weights if specified
   for layer in interm_layer_model.layers:
-    layer.trainable = code_model_trainable
+    layer.trainable = cfg.getboolean('data', 'base_trainable')
 
   # add logistic regression layer
   model = Sequential()
