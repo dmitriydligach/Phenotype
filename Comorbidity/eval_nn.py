@@ -133,78 +133,38 @@ def run_evaluation(disease, judgement):
   print('x_test shape:', x_test.shape)
   print('classes:', len(set(y_train)))
 
-  # wrap keras model for sklearn
   classifier = FixedKerasClassifier(
     build_fn=make_model,
     output_classes=len(set(y_train)),
     verbose=0)
 
-  if cfg.get('data', 'search') == 'grid':
-    print('running a grid search...')
+  param_space = {
+    'dropout': uniform(0, 0.75),
+    'lr': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
+    'epochs': randint(3, 75),
+    'batch_size': [2, 4, 8, 16, 32]}
 
-    param_grid = {
-      'dropout': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
-      'lr': [0.0001, 0.001, 0.01, 0.005],
-      'epochs': [2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30, 50],
-      'batch_size': [2, 4, 8, 16, 32]}
-
-    validator = GridSearchCV(
-      classifier,
-      param_grid,
-      scoring='f1_macro',
-      refit=False,
-      cv=cfg.getint('data', 'cv'))
-    validator.fit(x_train, y_train)
-
-    print('best params:', validator.best_params_)
-    dropout = validator.best_params_['dropout']
-    lr = validator.best_params_['lr']
-    epochs = validator.best_params_['epochs']
-    batch_size = validator.best_params_['batch_size']
-
-  elif cfg.get('data', 'search') == 'random':
-    print('running a random search...')
-
-    param_space = {
-      'dropout': uniform(0, 0.75),
-      'lr': [1e-5, 1e-4, 1e-3, 1e-2, 1e-1],
-      'epochs': randint(3, 75),
-      'batch_size': [2, 4, 8, 16, 32]}
-
-    validator = RandomizedSearchCV(
-      classifier,
-      param_space,
-      n_iter=cfg.getint('data', 'n_iter'),
-      scoring='f1_macro',
-      refit=False,
-      cv=cfg.getint('data', 'cv'),
-      verbose=cfg.getint('data', 'verbose'))
-    validator.fit(x_train, y_train)
-
-    print('best params:', validator.best_params_)
-    dropout = validator.best_params_['dropout']
-    lr = validator.best_params_['lr']
-    epochs = validator.best_params_['epochs']
-    batch_size = validator.best_params_['batch_size']
-
-  else:
-    print('using default hyperparameters...')
-
-    dropout = 0.25
-    lr = 0.001
-    epochs = 3
-    batch_size = 32
+  validator = RandomizedSearchCV(
+    classifier,
+    param_space,
+    n_iter=cfg.getint('data', 'n_iter'),
+    scoring='f1_macro',
+    refit=False,
+    cv=cfg.getint('data', 'cv'),
+    verbose=cfg.getint('data', 'verbose'))
+  validator.fit(x_train, y_train)
+  print('best params:', validator.best_params_)
 
   # train with best params and evaluate
   model = make_model(
     output_classes=len(set(y_train)),
-    dropout=dropout,
-    lr=lr)
+    dropout=validator.best_params_['dropout'],
+    lr=validator.best_params_['lr'])
   model.fit(
     x_train,
     y_train,
-    epochs=epochs,
-    batch_size=batch_size,
+    epochs=validator.best_params_['epochs'],
+    batch_size=validator.best_params_['batch_size'],
     verbose=0)
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
