@@ -166,6 +166,7 @@ def run_evaluation(disease, judgement):
     epochs=validator.best_params_['epochs'],
     batch_size=validator.best_params_['batch_size'],
     verbose=0)
+
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
 
@@ -173,6 +174,20 @@ def run_evaluation(disease, judgement):
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
   print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+
+  # thaw some base layers
+  for layer in model.layers:
+    if type(layer) == Model:
+      for base_layer in layer.layers:
+        if base_layer.name = 'HL':
+          base_layer.trainable = True
+
+  for layer in model.layers:
+    if type(layer) == Model:
+      for base_layer in layer.layers:
+        print('%s - %s' % (base_layer.name, base_layer.trainable))
+    else:
+      print('%s - %s' % (layer.name, layer.trainable))
 
   return p, r, f1
 
