@@ -169,7 +169,6 @@ def run_evaluation(disease, judgement):
 
   distribution = model.predict(x_test)
   predictions = np.argmax(distribution, axis=1)
-
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
@@ -179,15 +178,36 @@ def run_evaluation(disease, judgement):
   for layer in model.layers:
     if type(layer) == Model:
       for base_layer in layer.layers:
-        if base_layer.name = 'HL':
+        if base_layer.name == 'HL':
           base_layer.trainable = True
 
+  print('layer trainability status:')
   for layer in model.layers:
     if type(layer) == Model:
       for base_layer in layer.layers:
-        print('%s - %s' % (base_layer.name, base_layer.trainable))
+        print('%s: %s' % (base_layer.name, base_layer.trainable))
     else:
       print('%s - %s' % (layer.name, layer.trainable))
+
+  # recompilation does not destroy the weights
+  print('recompiling and training for a few more epochs')
+  model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer=RMSprop(lr=0.00001),
+    metrics=['accuracy'])
+  model.fit(
+    x_train,
+    y_train,
+    epochs=1,
+    batch_size=4,
+    verbose=0)
+
+  distribution = model.predict(x_test)
+  predictions = np.argmax(distribution, axis=1)
+  p = precision_score(y_test, predictions, average='macro')
+  r = recall_score(y_test, predictions, average='macro')
+  f1 = f1_score(y_test, predictions, average='macro')
+  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
   return p, r, f1
 
