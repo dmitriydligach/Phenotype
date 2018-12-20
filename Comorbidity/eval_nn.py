@@ -26,7 +26,7 @@ from keras.utils.np_utils import to_categorical
 from keras.models import load_model
 from keras.models import Model, Sequential
 from keras.layers.core import Dense, Dropout
-from keras.optimizers import RMSprop
+from keras.optimizers import RMSprop, SGD
 from scikit_learn import FixedKerasClassifier
 from scipy.stats import uniform
 from scipy.stats import randint
@@ -123,6 +123,25 @@ def make_model(
 
   return model
 
+def thaw_layer(model, layer_name):
+  """Make specified layer trainable"""
+
+  for layer in model.layers:
+    if type(layer) == Model: # base model
+      for base_layer in layer.layers:
+        if base_layer.name == layer_name:
+          base_layer.trainable = True
+
+def list_layers(model):
+  """List layers and show if they are trainable"""
+
+  for layer in model.layers:
+    if type(layer) == Model:
+      for base_layer in layer.layers:
+        print('%s: %s' % (base_layer.name, base_layer.trainable))
+    else:
+      print('%s: %s' % (layer.name, layer.trainable))
+
 def run_evaluation(disease, judgement):
   """Use pre-trained patient representations"""
 
@@ -173,32 +192,21 @@ def run_evaluation(disease, judgement):
   f1 = f1_score(y_test, predictions, average='macro')
   print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
 
-  # thaw some base layers
-  for layer in model.layers:
-    if type(layer) == Model:
-      for base_layer in layer.layers:
-        if base_layer.name == 'HL':
-          base_layer.trainable = True
+  # unfreeze a base model layer
+  print()
+  thaw_layer(model, 'HL')
+  list_layers(model)
 
-  print('layer trainability status:')
-  for layer in model.layers:
-    if type(layer) == Model:
-      for base_layer in layer.layers:
-        print('%s: %s' % (base_layer.name, base_layer.trainable))
-    else:
-      print('%s - %s' % (layer.name, layer.trainable))
-
-  # recompilation does not destroy the weights
-  print('recompiling and training for a few more epochs')
+  # now fine-tune the model
   model.compile(
     loss='sparse_categorical_crossentropy',
-    optimizer=RMSprop(lr=0.00001),
+    optimizer=SGD(lr=1e-5, momentum=0.9),
     metrics=['accuracy'])
   model.fit(
     x_train,
     y_train,
-    epochs=1,
-    batch_size=4,
+    epochs=3,
+    batch_size=2,
     verbose=0)
 
   distribution = model.predict(x_test)
@@ -207,6 +215,7 @@ def run_evaluation(disease, judgement):
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
   print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+  print()
 
   return p, r, f1
 
