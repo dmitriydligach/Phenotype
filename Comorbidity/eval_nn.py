@@ -99,21 +99,20 @@ def make_model(
 
   gc.collect()
   K.clear_session()
-  # print('classes: %d, dropout: %f, lr=%f' % (output_classes, dropout, lr))
 
   # load pretrained code prediction model
   rl = cfg.get('data', 'rep_layer')
   pretrained_model = load_model(cfg.get('data', 'model_file'))
-  interm_layer_model = Model(inputs=pretrained_model.input,
-                             outputs=pretrained_model.get_layer(rl).output)
+  base_model = Model(inputs=pretrained_model.input,
+                     outputs=pretrained_model.get_layer(rl).output)
 
-  # freeze the pretrained weights if specified
-  for layer in interm_layer_model.layers:
-    layer.trainable = cfg.getboolean('data', 'base_trainable')
+  # freeze pretrained weights
+  for layer in base_model.layers:
+    layer.trainable = False
 
   # add logistic regression layer
   model = Sequential()
-  model.add(interm_layer_model)
+  model.add(base_model)
   model.add(Dropout(dropout))
   model.add(Dense(output_classes, activation='softmax'))
 
