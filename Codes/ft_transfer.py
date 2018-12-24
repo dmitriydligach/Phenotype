@@ -144,25 +144,13 @@ if __name__ == "__main__":
   if cfg.getfloat('args', 'test_size') == 0:
     exit()
 
-  # probability for each class; (test size, num of classes)
-  distribution = model.predict(val_x)
+  predictions = model.predict_classes(val_x)
 
-  # turn into an indicator matrix
-  distribution[distribution < 0.5] = 0
-  distribution[distribution >= 0.5] = 1
-
-  f1 = f1_score(val_y, distribution, average='macro')
-  precision = precision_score(val_y, distribution, average='macro')
-  recall = recall_score(val_y, distribution, average='macro')
+  p = precision_score(val_y, predictions, average='macro')
+  r = recall_score(val_y, predictions, average='macro')
+  f1 = f1_score(val_y, predictions, average='macro')
   print("\nmacro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
-  f1 = f1_score(val_y, distribution, average='micro')
-  precision = precision_score(val_y, distribution, average='micro')
-  recall = recall_score(val_y, distribution, average='micro')
+  p = precision_score(val_y, predictions, average='micro')
+  r = recall_score(val_y, predictions, average='micro')
+  f1 = f1_score(val_y, predictions, average='micro')
   print("micro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
-
-  outf1 = open(RESULTS_FILE, 'w')
-  int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
-  f1_scores = f1_score(val_y, distribution, average=None)
-  outf1.write("%s|%s\n" % ('macro', f1))
-  for index, f1 in enumerate(f1_scores):
-    outf1.write("%s|%s\n" % (int2code[index], f1))
