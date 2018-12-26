@@ -153,7 +153,7 @@ class RandomSearch:
 
     predictions = model.predict_classes(val_x)
     p, r, f1 = self.report_results(val_y, predictions, 'macro')
-    print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
+    print("[%s] p: %.3f - r: %.3f - f1: %.3f" % ('macro', p, r, f1))
     print
 
 if __name__ == "__main__":
