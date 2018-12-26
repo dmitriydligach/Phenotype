@@ -59,7 +59,7 @@ class RandomSearch:
     self.params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.params['dropout'] = (0, 0.25, 0.5, 0.75)
-    self.params['epochs'] = range(0, 75)
+    self.params['epochs'] = range(0, 10)
     # self.params['embed'] = (True, False)
     # self.params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
 
@@ -152,7 +152,9 @@ class RandomSearch:
       batch_size=self.sample['batch'])
 
     predictions = model.predict_classes(val_x)
-    self.report_results(val_y, predictions, 'macro')
+    p, r, f1 = self.report_results(val_y, predictions, 'macro')
+    print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
+    print
 
 if __name__ == "__main__":
 

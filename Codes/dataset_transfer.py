@@ -35,11 +35,11 @@ class TransferDataset(DatasetProvider):
     self.subj2codes = {} # subj_id to set of icd9 codes
 
     # remove old model directory and make a fresh one
-    if os.path.isdir(MODEL_DIR):
-      print('removing old model directory...')
-      shutil.rmtree(MODEL_DIR)
-    print('making alphabet and saving it in file...')
-    os.mkdir(MODEL_DIR)
+    # if os.path.isdir(MODEL_DIR):
+    #   print('removing old model directory...')
+    #   shutil.rmtree(MODEL_DIR)
+    # print('making alphabet and saving it in file...')
+    # os.mkdir(MODEL_DIR)
     self.make_and_write_token_alphabet()
 
     # TODO: 3051 is actually tobacco use disorder
