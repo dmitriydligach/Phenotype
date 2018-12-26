@@ -87,14 +87,10 @@ if __name__ == "__main__":
   print_config(cfg)
 
   base = os.environ['DATA_ROOT']
-  train_dir = os.path.join(base, cfg.get('data', 'train'))
-  code_file = os.path.join(base, cfg.get('data', 'codes'))
-  targ_file = os.path.join(base, cfg.get('data', 'targets'))
-
   dataset = TransferDataset(
-    train_dir,
-    code_file,
-    targ_file,
+    os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'codes')),
+    os.path.join(base, cfg.get('data', 'targets')),
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'))

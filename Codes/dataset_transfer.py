@@ -71,7 +71,7 @@ class TransferDataset(DatasetProvider):
       if file_ngram_list == None:
         continue # file too long
 
-      # make code vector for this example
+      # determine the label for this subj_id
       subj_id = file.split('.')[0]
       if subj_id not in self.subj2codes:
         continue # subject was present once with no code
