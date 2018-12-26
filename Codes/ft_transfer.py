@@ -58,7 +58,7 @@ def print_config(cfg):
   print('hidden:', cfg.get('dan', 'hidden'))
   print('learnrt:', cfg.get('dan', 'learnrt'))
 
-def get_model(cfg, init_vectors, num_of_features):
+def get_model(init_vectors, num_of_features, maxlen):
   """Model definition"""
 
   model = Sequential()
@@ -80,11 +80,8 @@ def get_model(cfg, init_vectors, num_of_features):
   model.summary()
   return model
 
-if __name__ == "__main__":
-
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
-  print_config(cfg)
+def main():
+  """Driver function"""
 
   base = os.environ['DATA_ROOT']
   dataset = TransferDataset(
@@ -124,7 +121,7 @@ if __name__ == "__main__":
   else:
     optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
 
-  model = get_model(cfg, init_vectors, len(dataset.token2int))
+  model = get_model(init_vectors, len(dataset.token2int), maxlen)
   model.compile(loss='binary_crossentropy',
                 optimizer=optimizer,
                 metrics=['accuracy'])
@@ -150,3 +147,10 @@ if __name__ == "__main__":
   r = recall_score(val_y, predictions, average='micro')
   f1 = f1_score(val_y, predictions, average='micro')
   print("micro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+
+if __name__ == "__main__":
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  print_config(cfg)
+  main()
