@@ -59,7 +59,7 @@ class RandomSearch:
     self.params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
     self.params['dropout'] = (0, 0.25, 0.5, 0.75)
-    self.params['epochs'] = range(0, 10)
+    self.params['epochs'] = range(0, 25)
     # self.params['embed'] = (True, False)
     # self.params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
 
@@ -153,7 +153,8 @@ class RandomSearch:
         train_y,
         validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
         epochs=self.sample['epochs'],
-        batch_size=self.sample['batch'])
+        batch_size=self.sample['batch'],
+        verbose=0)
 
       predictions = model.predict_classes(val_x)
       p, r, f1 = self.report_results(val_y, predictions, 'macro')
