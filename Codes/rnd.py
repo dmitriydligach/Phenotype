@@ -58,7 +58,7 @@ class RandomSearch:
     self.params['hidden'] = (500, 1000, 5000, 10000)
     self.params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
     self.params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
-    self.params['dropout'] = (0, 0.25, 0.5, 0.75)
+    self.params['dropout'] = np.linspace(0, 0.6, 6, endpoint=False)
     self.params['epochs'] = range(0, 25)
     # self.params['embed'] = (True, False)
     # self.params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
@@ -133,7 +133,7 @@ class RandomSearch:
     train_y = np.array(train_y)
     val_y = np.array(val_y)
 
-    for _ in range(50):
+    for _ in range(25):
 
       self.sample_params()
 
