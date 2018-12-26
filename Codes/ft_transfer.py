@@ -58,6 +58,15 @@ def print_config(cfg):
   print('hidden:', cfg.get('dan', 'hidden'))
   print('learnrt:', cfg.get('dan', 'learnrt'))
 
+def report_results(val_y, predictions, average):
+  """Report p, r, and f1"""
+
+  p = precision_score(val_y, predictions, average=average)
+  r = recall_score(val_y, predictions, average=average)
+  f1 = f1_score(val_y, predictions, average=average)
+
+  print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
+
 def get_model(init_vectors, num_of_features, maxlen):
   """Model definition"""
 
@@ -138,15 +147,8 @@ def main():
     exit()
 
   predictions = model.predict_classes(val_x)
-
-  p = precision_score(val_y, predictions, average='macro')
-  r = recall_score(val_y, predictions, average='macro')
-  f1 = f1_score(val_y, predictions, average='macro')
-  print("\nmacro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
-  p = precision_score(val_y, predictions, average='micro')
-  r = recall_score(val_y, predictions, average='micro')
-  f1 = f1_score(val_y, predictions, average='micro')
-  print("micro: precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+  report_results(val_y, predictions, 'macro')
+  report_results(val_y, predictions, 'micro')
 
 if __name__ == "__main__":
 
