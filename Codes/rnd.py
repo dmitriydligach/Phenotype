@@ -63,8 +63,6 @@ class RandomSearch:
     # self.params['embed'] = (True, False)
     # self.params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
 
-    self.sample_params()
-
   def sample_params(self):
     """Random training configuration"""
 
@@ -135,26 +133,32 @@ class RandomSearch:
     train_y = np.array(train_y)
     val_y = np.array(val_y)
 
-    model = self.define_model(
-      init_vectors,
-      len(dataset.token2int),
-      maxlen,
-      cfg.getint('dan', 'embdims'))
-    model.compile(
-      loss='binary_crossentropy',
-      optimizer=self.sample['optimizer'],
-      metrics=['accuracy'])
-    model.fit(
-      train_x,
-      train_y,
-      validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
-      epochs=self.sample['epochs'],
-      batch_size=self.sample['batch'])
+    for _ in range(50):
 
-    predictions = model.predict_classes(val_x)
-    p, r, f1 = self.report_results(val_y, predictions, 'macro')
-    print("[%s] p: %.3f - r: %.3f - f1: %.3f" % ('macro', p, r, f1))
-    print
+      self.sample_params()
+
+      model = self.define_model(
+        init_vectors,
+        len(dataset.token2int),
+        maxlen,
+        cfg.getint('dan', 'embdims'))
+
+      model.compile(
+        loss='binary_crossentropy',
+        optimizer=self.sample['optimizer'],
+        metrics=['accuracy'])
+
+      model.fit(
+        train_x,
+        train_y,
+        validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
+        epochs=self.sample['epochs'],
+        batch_size=self.sample['batch'])
+
+      predictions = model.predict_classes(val_x)
+      p, r, f1 = self.report_results(val_y, predictions, 'macro')
+      print("[%s] p: %.3f - r: %.3f - f1: %.3f" % ('macro', p, r, f1))
+      print
 
 if __name__ == "__main__":
 
