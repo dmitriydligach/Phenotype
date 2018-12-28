@@ -34,7 +34,7 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras.callbacks import Callback
 from dataset_transfer import TransferDataset
-import dataset, word2vec, callback, param_search
+import dataset, word2vec, callback, rndsearch
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -95,6 +95,7 @@ def main():
   cfg.read(sys.argv[1])
   base = os.environ['DATA_ROOT']
 
+  # load x and y and split
   dataset = TransferDataset(
     os.path.join(base, cfg.get('data', 'train')),
     os.path.join(base, cfg.get('data', 'codes')),
@@ -109,6 +110,7 @@ def main():
     test_size=0.2)
   max_len = max([len(seq) for seq in x_train])
 
+  # load pretrained embeddings
   init_vectors = None
   if cfg.has_option('data', 'embed'):
     embed_file = os.path.join(base, cfg.get('data', 'embed'))
@@ -128,7 +130,7 @@ def main():
     'init_vectors': init_vectors
   }
 
-  results = param_search.run(
+  results = rndsearch.run(
     make_model,
     fixed_args,
     make_param_space(),
@@ -138,7 +140,6 @@ def main():
     y_val,
     3)
 
-  print('sorted results:')
   print(results)
 
 if __name__ == "__main__":

@@ -33,7 +33,6 @@ def sample(params):
   for param, values in params.items():
     config[param] = random.choice(values)
 
-  print('sample:', config)
   return config
 
 def run(
@@ -56,6 +55,7 @@ def run(
     args = config.copy()
     args.update(make_model_args)
     model = make_model(args)
+    print('sample:', config)
 
     model.fit(
       x_train,
@@ -70,8 +70,7 @@ def run(
     config2score[tuple(config.items())] = f1
     print("macro f1: %.3f" % f1)
 
-  print(config2score)
-  return sorted(config2score, key=config2score.get)
+  return config2score
 
 if __name__ == "__main__":
 
