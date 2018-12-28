@@ -140,7 +140,11 @@ def main():
     y_val,
     3)
 
-  print(results)
+  # display configs sorted by f1
+  print('******* results *******')
+  sorted_by_value = sorted(results, key=results.get)
+  for config in sorted_by_value:
+    print('%s: %.3f' % (config, results[config]))
 
 if __name__ == "__main__":
 

@@ -68,7 +68,7 @@ def run(
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
     config2score[tuple(config.items())] = f1
-    print("macro f1: %.3f" % f1)
+    print('macro f1: %.3f' % f1)
 
   return config2score
 
