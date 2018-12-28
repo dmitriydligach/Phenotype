@@ -128,7 +128,7 @@ def main():
     'init_vectors': init_vectors
   }
 
-  best_config = param_search.run(
+  results = param_search.run(
     make_model,
     fixed_args,
     make_param_space(),
@@ -138,7 +138,8 @@ def main():
     y_val,
     3)
 
-  print("best configuration:", best_config)
+  print('sorted results:')
+  print(results)
 
 if __name__ == "__main__":
 

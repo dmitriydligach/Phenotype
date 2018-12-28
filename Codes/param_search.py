@@ -67,13 +67,11 @@ def run(
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
-    config2score[config] = f1
+    config2score[tuple(config.items())] = f1
     print("macro f1: %.3f" % f1)
 
-  # get config with best score
-  print()
   print(config2score)
-  return max(config2score, key=config2score.get)
+  return sorted(config2score, key=config2score.get)
 
 if __name__ == "__main__":
 
