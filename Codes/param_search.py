@@ -18,23 +18,7 @@ bke.set_session(s)
 import sys, random
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
-import configparser
 from sklearn.metrics import f1_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import recall_score
-from sklearn.model_selection import train_test_split
-import keras as k
-from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential
-from keras.layers.core import Dense, Activation, Dropout
-from keras.layers import GlobalAveragePooling1D
-from keras.layers.embeddings import Embedding
-from keras.models import load_model
-from keras.callbacks import Callback
-from dataset_transfer import TransferDataset
-import dataset, word2vec, callback
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
