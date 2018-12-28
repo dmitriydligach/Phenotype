@@ -53,13 +53,13 @@ def make_param_space():
 
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
   params['hidden'] = (500, 1000, 5000, 10000)
-  params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
   params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
+  params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
   params['dropout'] = (0, 0.1, 0.2, 0.3, 0.4, 0.5)
-  params['epochs'] = range(0, 25)
+  params['epochs'] = range(0, 50)
 
   # params['embed'] = (True, False)
-  # params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
+  # params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
 
   return params
 
@@ -84,7 +84,7 @@ def make_model(kwargs):
 
   model.compile(
     loss='binary_crossentropy',
-    optimizer=kwargs['optimizer'],
+    optimizer=RMSprop(lr=kwargs['lr']),
     metrics=['accuracy'])
 
   return model
@@ -139,7 +139,7 @@ def main():
     y_train,
     x_val,
     y_val,
-    10)
+    200)
 
 if __name__ == "__main__":
 
