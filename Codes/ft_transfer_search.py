@@ -62,28 +62,28 @@ def make_param_space():
 
   return params
 
-def make_model(kwargs):
+def make_model(args):
   """Model for random search"""
 
   model = Sequential()
-  model.add(Embedding(input_dim=kwargs['num_features'],
-                      output_dim=kwargs['emb_dims'],
-                      input_length=kwargs['seq_len'],
-                      weights=kwargs['init_vectors'],
+  model.add(Embedding(input_dim=args['num_features'],
+                      output_dim=args['emb_dims'],
+                      input_length=args['seq_len'],
+                      weights=args['init_vectors'],
                       name='EL'))
   model.add(GlobalAveragePooling1D(name='AL'))
 
-  model.add(Dense(kwargs['hidden'], name='HL'))
-  model.add(Activation(kwargs['activation']))
+  model.add(Dense(args['hidden'], name='HL'))
+  model.add(Activation(args['activation']))
 
-  model.add(Dropout(kwargs['dropout']))
+  model.add(Dropout(args['dropout']))
 
   model.add(Dense(1))
   model.add(Activation('sigmoid'))
 
   model.compile(
     loss='binary_crossentropy',
-    optimizer=RMSprop(lr=kwargs['lr']),
+    optimizer=RMSprop(lr=args['lr']),
     metrics=['accuracy'])
 
   return model
@@ -136,7 +136,7 @@ def main():
     y_train,
     x_val,
     y_val,
-    200)
+    3)
 
 if __name__ == "__main__":
 

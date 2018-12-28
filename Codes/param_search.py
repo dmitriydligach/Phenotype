@@ -27,38 +27,38 @@ import warnings
 warnings.warn = warn
 
 def sample(params):
-  """Random training configuration"""
+  """Sample a configuration from param space"""
 
-  sample = {}
+  config = {}
   for param, values in params.items():
-    sample[param] = random.choice(values)
+    config[param] = random.choice(values)
 
-  print('sample:', sample)
-  return sample
+  print('sample:', config)
+  return config
 
 def run(
-  make_model,
-  make_model_kwargs,
-  param_space,
-  x_train,
-  y_train,
-  x_val,
-  y_val,
-  n_iter):
-  """Driver function"""
+  make_model,      # function that returns a keras model
+  make_model_args, # dict with make_model arguments
+  param_space,     # dict with hyperparameter values
+  x_train,         # training examples
+  y_train,         # training labels
+  x_val,           # validation examples
+  y_val,           # validation labels
+  n):              # number iterations
+  """Random search"""
 
-  for _ in range(n_iter):
-    sample = sample(param_space)
-    kwargs = sample.copy()
-    kwargs.update(make_model_kwargs)
-    model = make_model(kwargs)
+  for _ in range(n):
+
+    config = sample(param_space)
+    config.update(make_model_args)
+    model = make_model(config)
 
     model.fit(
       x_train,
       y_train,
       validation_data=(x_val, y_val),
-      epochs=sample['epochs'],
-      batch_size=sample['batch'],
+      epochs=config['epochs'],
+      batch_size=config['batch'],
       verbose=0)
 
     predictions = model.predict_classes(x_val)
