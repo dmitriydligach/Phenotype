@@ -55,7 +55,7 @@ def make_param_space():
   params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
   params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
   params['dropout'] = (0, 0.1, 0.2, 0.3, 0.4, 0.5)
-  params['epochs'] = range(0, 50)
+  params['epochs'] = range(0, 5)
 
   # params['embed'] = (True, False)
   # params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
@@ -128,7 +128,7 @@ def main():
     'init_vectors': init_vectors
   }
 
-  param_search.run(
+  best_config = param_search.run(
     make_model,
     fixed_args,
     make_param_space(),
@@ -137,6 +137,8 @@ def main():
     x_val,
     y_val,
     3)
+
+  print("best configuration:", best_config)
 
 if __name__ == "__main__":
 

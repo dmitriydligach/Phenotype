@@ -47,23 +47,33 @@ def run(
   n):              # number iterations
   """Random search"""
 
+  # configurations and their scores
+  config2score = {}
+
   for _ in range(n):
 
     config = sample(param_space)
-    config.update(make_model_args)
-    model = make_model(config)
+    args = config.copy()
+    args.update(make_model_args)
+    model = make_model(args)
 
     model.fit(
       x_train,
       y_train,
       validation_data=(x_val, y_val),
-      epochs=config['epochs'],
-      batch_size=config['batch'],
+      epochs=args['epochs'],
+      batch_size=args['batch'],
       verbose=0)
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
+    config2score[config] = f1
     print("macro f1: %.3f" % f1)
+
+  # get config with best score
+  print()
+  print(config2score)
+  return max(config2score, key=config2score.get)
 
 if __name__ == "__main__":
 
