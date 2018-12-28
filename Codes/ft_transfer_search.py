@@ -51,14 +51,11 @@ def make_param_space():
   params = {};
 
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
-  params['hidden'] = (500, 1000, 5000, 10000)
+  params['hidden'] = (500, 1000, 5000, 10000, 25000)
   params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
-  params['lr'] = (1e-5, 1e-4, 1e-3, 1e-2, 1e-1)
+  params['lr'] = (1e-4, 1e-3, 1e-2, 1e-1)
   params['dropout'] = (0, 0.1, 0.2, 0.3, 0.4, 0.5)
-  params['epochs'] = range(0, 5)
-
-  # params['embed'] = (True, False)
-  # params['optimizer'] = ('rmsprop', 'adam', 'adamax', 'nadam')
+  params['epochs'] = range(3, 50)
 
   return params
 
@@ -138,10 +135,10 @@ def main():
     y_train,
     x_val,
     y_val,
-    3)
+    500)
 
   # display configs sorted by f1
-  print('******* results *******')
+  print('\nconfigurations sorted by score:')
   sorted_by_value = sorted(results, key=results.get)
   for config in sorted_by_value:
     print('%s: %.3f' % (config, results[config]))
