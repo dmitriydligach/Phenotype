@@ -90,8 +90,8 @@ class RandomSearch:
         verbose=0)
 
       predictions = model.predict_classes(x_val)
-      f1 = f1_score(y_val, predictions, average=average)
-      print("f1: %.3f" % f1)
+      f1 = f1_score(y_val, predictions, average='macro')
+      print("macro f1: %.3f" % f1)
 
 if __name__ == "__main__":
 
