@@ -26,58 +26,45 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-RESULTS_FILE = 'Model/results.txt'
-MODEL_FILE = 'Model/model.h5'
+def sample(params):
+  """Random training configuration"""
 
-class RandomSearch:
-  """Random search for Keras"""
+  sample = {}
+  for param, values in params.items():
+    sample[param] = random.choice(values)
 
-  def __init__(self):
-    """Constructor"""
+  print('sample:', sample)
+  return sample
 
-    pass
+def run(
+  make_model,
+  make_model_kwargs,
+  param_space,
+  x_train,
+  y_train,
+  x_val,
+  y_val,
+  n_iter):
+  """Driver function"""
 
-  def sample_params(self, params):
-    """Random training configuration"""
+  for _ in range(n_iter):
+    sample = sample(param_space)
+    kwargs = sample.copy()
+    kwargs.update(make_model_kwargs)
+    model = make_model(kwargs)
 
-    sample = {}
-    for param, values in params.items():
-      sample[param] = random.choice(values)
+    model.fit(
+      x_train,
+      y_train,
+      validation_data=(x_val, y_val),
+      epochs=sample['epochs'],
+      batch_size=sample['batch'],
+      verbose=0)
 
-    print('sample:', sample)
-    return sample
-
-  def run(
-    self,
-    make_model,
-    make_model_kwargs,
-    param_space,
-    x_train,
-    y_train,
-    x_val,
-    y_val,
-    n_iter):
-    """Driver function"""
-
-    for _ in range(n_iter):
-      sample = self.sample_params(param_space)
-      kwargs = sample.copy()
-      kwargs.update(make_model_kwargs)
-      model = make_model(kwargs)
-
-      model.fit(
-        x_train,
-        y_train,
-        validation_data=(x_val, y_val),
-        epochs=sample['epochs'],
-        batch_size=sample['batch'],
-        verbose=0)
-
-      predictions = model.predict_classes(x_val)
-      f1 = f1_score(y_val, predictions, average='macro')
-      print("macro f1: %.3f" % f1)
+    predictions = model.predict_classes(x_val)
+    f1 = f1_score(y_val, predictions, average='macro')
+    print("macro f1: %.3f" % f1)
 
 if __name__ == "__main__":
 
-  rs = RandomSearch()
-  rs.train_and_eval()
+  pass

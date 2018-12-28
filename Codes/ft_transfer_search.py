@@ -34,8 +34,7 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras.callbacks import Callback
 from dataset_transfer import TransferDataset
-from param_search import RandomSearch
-import dataset, word2vec, callback
+import dataset, word2vec, callback, param_search
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -129,9 +128,7 @@ def main():
     'init_vectors': init_vectors
   }
 
-  rs = RandomSearch()
-
-  rs.run(
+  param_search.run(
     make_model,
     fixed_args,
     make_param_space(),
