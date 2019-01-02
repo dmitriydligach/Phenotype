@@ -15,7 +15,7 @@ s = tf.Session(graph=tf.get_default_graph())
 bke.set_session(s)
 
 # the rest of imports
-import sys, random
+import sys, random, gc
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 from sklearn.metrics import f1_score
@@ -43,13 +43,17 @@ def run(
   y_train,         # training labels
   x_val,           # validation examples
   y_val,           # validation labels
-  n):              # number iterations
+  n):              # number of iterations
   """Random search"""
 
   # configurations and their scores
   config2score = {}
 
   for _ in range(n):
+
+    # prevent OOM errors
+    gc.collect()
+    bke.clear_session()
 
     config = sample(param_space)
     args = config.copy()

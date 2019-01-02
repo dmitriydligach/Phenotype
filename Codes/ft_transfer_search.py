@@ -102,9 +102,7 @@ def main():
     cfg.getint('args', 'min_examples_per_code'))
   x, y = dataset.load()
   x_train, x_val, y_train, y_val = train_test_split(
-    x,
-    y,
-    test_size=0.2)
+    x, y, test_size=0.2)
   max_len = max([len(seq) for seq in x_train])
 
   # load pretrained embeddings
