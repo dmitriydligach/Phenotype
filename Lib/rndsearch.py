@@ -30,8 +30,14 @@ def sample(params):
   """Sample a configuration from param space"""
 
   config = {}
-  for param, values in params.items():
-    config[param] = random.choice(values)
+
+  for param, value in params.items():
+    if hasattr(value, 'rvs'):
+      # this is a scipy.stats distribution
+      config[param] = value.rvs()
+    else:
+      # this is a tuple
+      config[param] = random.choice(value)
 
   return config
 

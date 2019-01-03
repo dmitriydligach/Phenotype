@@ -34,6 +34,8 @@ from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras.callbacks import Callback
 from dataset_transfer import TransferDataset
+from scipy.stats import uniform
+from scipy.stats import randint
 import dataset, word2vec, callback, rndsearch
 
 # ignore sklearn warnings
@@ -53,9 +55,9 @@ def make_param_space():
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
   params['hidden'] = (500, 1000, 5000, 10000, 25000)
   params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
-  params['lr'] = (1e-4, 1e-3, 1e-2, 1e-1)
-  params['dropout'] = (0, 0.1, 0.2, 0.3, 0.4, 0.5)
-  params['epochs'] = range(3, 50)
+  params['log10lr'] = uniform(-4, 3)
+  params['dropout'] = uniform(0, 0.5)
+  params['epochs'] = randint(3, 47)
 
   return params
 
@@ -80,7 +82,7 @@ def make_model(args):
 
   model.compile(
     loss='binary_crossentropy',
-    optimizer=RMSprop(lr=args['lr']),
+    optimizer=RMSprop(lr=10**args['log10lr']),
     metrics=['accuracy'])
 
   return model
