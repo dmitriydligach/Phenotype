@@ -19,6 +19,7 @@ import sys, random, gc
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 from sklearn.metrics import f1_score
+from keras.callbacks import EarlyStopping
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -73,7 +74,8 @@ def run(
       validation_data=(x_val, y_val),
       epochs=args['epochs'],
       batch_size=args['batch'],
-      verbose=0)
+      verbose=0,
+      callbacks = [EarlyStopping(verbose=1)])
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
