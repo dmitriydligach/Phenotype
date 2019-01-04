@@ -68,6 +68,12 @@ def run(
     model = make_model(args)
     print('[%d] %s' % (i + 1, config))
 
+    erstop = EarlyStopping(
+      monitor='val_loss',
+      min_delta=0,
+      patience=2,
+      restore_best_weights=True)
+
     model.fit(
       x_train,
       y_train,
@@ -75,7 +81,7 @@ def run(
       epochs=args['epochs'],
       batch_size=args['batch'],
       verbose=0,
-      callbacks = [EarlyStopping(verbose=1)])
+      callbacks=[erstop])
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')

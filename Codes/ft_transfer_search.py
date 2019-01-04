@@ -54,7 +54,7 @@ def make_param_space():
 
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
   params['hidden'] = (512, 1024, 2048, 4096, 8192, 16384)
-  params['activation'] = ('relu', 'tanh', 'sigmoid', 'linear')
+  params['activation'] = ('relu', 'sigmoid', 'linear')
   params['log10lr'] = uniform(-4, 3) # 1e-4, ..., 1e-1
   params['dropout'] = uniform(0, 0.5)
   params['epochs'] = randint(1, 50)
