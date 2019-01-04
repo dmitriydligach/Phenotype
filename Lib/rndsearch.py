@@ -56,7 +56,7 @@ def run(
   # configurations and their scores
   config2score = {}
 
-  for _ in range(n):
+  for i in range(n):
 
     # prevent OOM errors
     gc.collect()
@@ -66,7 +66,7 @@ def run(
     args = config.copy()
     args.update(make_model_args)
     model = make_model(args)
-    print('sample:', config)
+    print('[%d] %s' % (i + 1, config))
 
     model.fit(
       x_train,
@@ -80,7 +80,7 @@ def run(
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
     config2score[tuple(config.items())] = f1
-    print('macro f1: %.3f' % f1)
+    print('[%d] score: %.3f' % (i + 1, f1))
 
   return config2score
 
