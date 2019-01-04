@@ -122,20 +122,21 @@ def main():
 
   fixed_args = {
     'num_features': len(dataset.token2int),
-    'emb_dims': 300,
+    'emb_dims': cfg.getint('search', 'emb_dim'),
     'seq_len': max_len,
     'init_vectors': init_vectors
   }
+  param_space = make_param_space()
 
   results = rndsearch.run(
     make_model,
     fixed_args,
-    make_param_space(),
+    param_space,
     x_train,
     y_train,
     x_val,
     y_val,
-    500)
+    cfg.getint('search', 'n'))
 
   # display configs sorted by f1
   print('\nconfigurations sorted by score:')
