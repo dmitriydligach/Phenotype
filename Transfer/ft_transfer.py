@@ -17,6 +17,7 @@ bke.set_session(s)
 # the rest of imports
 import sys
 sys.path.append('../Lib/')
+sys.path.append('../Codes')
 sys.dont_write_bytecode = True
 import configparser
 from sklearn.metrics import f1_score
