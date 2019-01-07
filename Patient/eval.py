@@ -64,15 +64,18 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
     model = classifier.fit(x_train, y_train)
 
   predictions = classifier.predict(x_test)
+
   p = precision_score(y_test, predictions, average='macro')
   r = recall_score(y_test, predictions, average='macro')
   f1 = f1_score(y_test, predictions, average='macro')
-  print("precision: %.3f - recall: %.3f - f1: %.3f" % (p, r, f1))
+  print("p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
 
   probs = classifier.predict_proba(x_test)
+
   roc_auc = roc_auc_score(y_test, probs[:, 1])
   accuracy = accuracy_score(y_test, predictions)
-  print("auc: %.3f - accuracy: %.3f" % (roc_auc, accuracy))
+  print('auc: %.3f' % roc_auc)
+  print('acc: %.3f' % accuracy)
 
 def data_dense():
   """Data to feed into code prediction model"""
