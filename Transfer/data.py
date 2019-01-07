@@ -20,6 +20,7 @@ class TransferDataset(DatasetProvider):
                min_token_freq,
                max_tokens_in_file,
                min_examples_per_code,
+               code_characters=3,
                use_cuis=True):
     """Constructor. Allows to specify ICD codes."""
 
@@ -29,6 +30,7 @@ class TransferDataset(DatasetProvider):
     self.min_token_freq = min_token_freq
     self.max_tokens_in_file = max_tokens_in_file
     self.min_examples_per_code = min_examples_per_code
+    self.code_characters = code_characters
     self.use_cuis = use_cuis
 
     self.token2int = {}  # words indexed by frequency
@@ -46,7 +48,12 @@ class TransferDataset(DatasetProvider):
     # so don't need to truncate at 3 chars?
     print('mapping codes...')
     code_file = os.path.join(self.code_dir, DIAG_ICD9_FILE)
-    self.index_codes(code_file, 'HADM_ID', 'ICD9_CODE', 'diag', 3)
+    self.index_codes(
+      code_file,
+      'HADM_ID',
+      'ICD9_CODE',
+      'diag',
+      self.code_characters)
 
   def load(self,
            maxlen=float('inf'),
@@ -59,7 +66,7 @@ class TransferDataset(DatasetProvider):
     # read target codes
     target_code_categories = set([])
     for line in open(self.target_code_path):
-      short_code = 'diag_%s' % line.strip()[0:3]
+      short_code = 'diag_%s' % line.strip()[0:self.code_characters]
       target_code_categories.add(short_code)
 
     for file in os.listdir(self.corpus_path):

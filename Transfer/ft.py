@@ -100,7 +100,8 @@ def main():
     os.path.join(base, cfg.get('data', 'targets')),
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
+    cfg.getint('args', 'min_examples_per_code'),
+    cfg.getint('args', 'code_characters'))
   x, y = dataset.load()
   train_x, val_x, train_y, val_y = train_test_split(
     x,
