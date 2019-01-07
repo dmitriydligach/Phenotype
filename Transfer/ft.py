@@ -34,8 +34,8 @@ from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras.callbacks import Callback
-from trfdata import TransferDataset
-import dataset, word2vec, callback
+from data import TransferDataset
+import word2vec, callback
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
