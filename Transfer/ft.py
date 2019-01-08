@@ -101,7 +101,7 @@ def main():
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'),
-    cfg.getint('args', 'code_characters'))
+    cfg.getboolean('args', 'collapse_codes'))
   x, y = dataset.load()
   train_x, val_x, train_y, val_y = train_test_split(
     x,
@@ -126,6 +126,8 @@ def main():
   print('val_x shape:', val_x.shape)
   print('val_y shape:', val_y.shape)
   print('number of features:', len(dataset.token2int))
+  print('positive examples:', sum(y))
+  print('negative examples:', len(y) - sum(y))
 
   if cfg.has_option('dan', 'optimizer'):
     optimizer = cfg.get('dan', 'optimizer')
