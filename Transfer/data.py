@@ -130,7 +130,7 @@ if __name__ == "__main__":
     cfg.getint('args', 'max_tokens_in_file'),
     cfg.getint('args', 'min_examples_per_code'),
     cfg.getboolean('args', 'collapse_codes'))
-  print('chars:', dataset.code_characters)    
+
   x, y = dataset.load()
 
   print("positive:", sum(y))
