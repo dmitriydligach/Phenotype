@@ -2,6 +2,7 @@
 
 import configparser, sys, os, shutil
 sys.dont_write_bytecode = True
+sys.path.append('../Codes')
 from dataset import DatasetProvider
 
 MODEL_DIR = 'Model/'
@@ -20,7 +21,7 @@ class TransferDataset(DatasetProvider):
                min_token_freq,
                max_tokens_in_file,
                min_examples_per_code,
-               code_characters=3,
+               collapse_codes,
                use_cuis=True):
     """Constructor. Allows to specify ICD codes."""
 
@@ -30,7 +31,7 @@ class TransferDataset(DatasetProvider):
     self.min_token_freq = min_token_freq
     self.max_tokens_in_file = max_tokens_in_file
     self.min_examples_per_code = min_examples_per_code
-    self.code_characters = code_characters
+    self.code_characters = 3 if collapse_codes else None
     self.use_cuis = use_cuis
 
     self.token2int = {}  # words indexed by frequency
@@ -127,7 +128,9 @@ if __name__ == "__main__":
     targ_file,
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
+    cfg.getint('args', 'min_examples_per_code'),
+    cfg.getboolean('args', 'collapse_codes'))
+  print('chars:', dataset.code_characters)    
   x, y = dataset.load()
 
   print("positive:", sum(y))
