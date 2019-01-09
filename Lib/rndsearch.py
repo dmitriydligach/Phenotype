@@ -15,7 +15,7 @@ s = tf.Session(graph=tf.get_default_graph())
 bke.set_session(s)
 
 # the rest of imports
-import sys, random, gc
+import sys, random, gc, keras
 sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 from sklearn.metrics import f1_score
@@ -77,9 +77,10 @@ def run(
       patience=2,
       restore_best_weights=True)
 
+    optim = getattr(keras.optimizers, args['optimizer'])
     model.compile(
       loss='binary_crossentropy',
-      optimizer=RMSprop(lr=10**args['log10lr']),
+      optimizer=optim(lr=10**args['log10lr']),
       metrics=['accuracy'])
 
     model.fit(

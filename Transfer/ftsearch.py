@@ -54,6 +54,7 @@ def make_param_space():
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
   params['hidden'] = (500, 1000, 5000, 10000)
   params['activation'] = ('relu', 'linear')
+  params['optimizer'] = ('RMSprop', 'Adam')
   params['log10lr'] = uniform(-4, 3) # 1e-4, ..., 1e-1
   params['dropout'] = uniform(0, 0.5)
 
