@@ -27,6 +27,8 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
+DEFAULT_EPOCHS = 100
+
 def sample(params):
   """Sample a configuration from param space"""
 
@@ -44,7 +46,7 @@ def sample(params):
 
 def run(
   make_model,      # function that returns a keras model
-  make_model_args, # dict with make_model arguments
+  fixed_args,      # dict with make_model arguments
   param_space,     # dict with hyperparameter values
   x_train,         # training examples
   y_train,         # training labels
@@ -64,9 +66,8 @@ def run(
 
     config = sample(param_space)
     args = config.copy()
-    args.update(make_model_args)
+    args.update(fixed_args)
     model = make_model(args)
-    print('[%d] %s' % (i + 1, config))
 
     erstop = EarlyStopping(
       monitor='val_loss',
@@ -78,14 +79,20 @@ def run(
       x_train,
       y_train,
       validation_data=(x_val, y_val),
-      epochs=args['epochs'],
+      epochs=DEFAULT_EPOCHS,
       batch_size=args['batch'],
       verbose=0,
       callbacks=[erstop])
 
+    # add effective number of epochs to config
+    print('stopped after %d epochs' % erstop.stopped_epoch)
+    config['epochs'] = erstop.stopped_epoch
+
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
     config2score[tuple(config.items())] = f1
+
+    print('[%d] %s' % (i + 1, config))
     print('[%d] score: %.3f' % (i + 1, f1))
 
   return config2score

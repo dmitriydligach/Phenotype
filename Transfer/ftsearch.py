@@ -54,11 +54,10 @@ def make_param_space():
   params = {};
 
   params['batch'] = (2, 4, 8, 16, 32, 64, 128, 256)
-  params['hidden'] = (512, 1024, 2048, 4096, 8192, 16384)
-  params['activation'] = ('relu', 'sigmoid', 'linear')
+  params['hidden'] = (500, 1000, 5000, 10000)
+  params['activation'] = ('relu', 'linear')
   params['log10lr'] = uniform(-4, 3) # 1e-4, ..., 1e-1
   params['dropout'] = uniform(0, 0.5)
-  params['epochs'] = randint(1, 50)
 
   return params
 
@@ -102,7 +101,8 @@ def main():
     os.path.join(base, cfg.get('data', 'targets')),
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
+    cfg.getint('args', 'min_examples_per_code'),
+    cfg.getboolean('args', 'collapse_codes'))
   x, y = dataset.load()
   x_train, x_val, y_train, y_val = train_test_split(
     x, y, test_size=0.2)
