@@ -26,18 +26,16 @@ from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
 import keras as k
 from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
-from keras.callbacks import Callback
 from data import TransferDataset
 from scipy.stats import uniform
 from scipy.stats import randint
-import word2vec, callback, rndsearch
+import word2vec, rndsearch
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -79,11 +77,6 @@ def make_model(args):
 
   model.add(Dense(1))
   model.add(Activation('sigmoid'))
-
-  model.compile(
-    loss='binary_crossentropy',
-    optimizer=RMSprop(lr=10**args['log10lr']),
-    metrics=['accuracy'])
 
   return model
 

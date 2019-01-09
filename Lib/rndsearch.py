@@ -20,6 +20,7 @@ sys.path.append('../Lib/')
 sys.dont_write_bytecode = True
 from sklearn.metrics import f1_score
 from keras.callbacks import EarlyStopping
+from keras.optimizers import RMSprop
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -67,6 +68,7 @@ def run(
     config = sample(param_space)
     args = config.copy()
     args.update(fixed_args)
+
     model = make_model(args)
 
     erstop = EarlyStopping(
@@ -74,6 +76,11 @@ def run(
       min_delta=0,
       patience=2,
       restore_best_weights=True)
+
+    model.compile(
+      loss='binary_crossentropy',
+      optimizer=RMSprop(lr=10**args['log10lr']),
+      metrics=['accuracy'])
 
     model.fit(
       x_train,
@@ -85,8 +92,7 @@ def run(
       callbacks=[erstop])
 
     # add effective number of epochs to config
-    print('stopped after %d epochs' % erstop.stopped_epoch)
-    config['epochs'] = erstop.stopped_epoch
+    config['epochs'] = erstop.stopped_epoch - 1
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
