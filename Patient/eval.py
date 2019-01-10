@@ -54,6 +54,14 @@ def grid_search(x, y, scoring):
 
   return gs.best_estimator_
 
+def report_f1(y_test, predictions, average):
+  """Report p, r, and f1"""
+
+  p = precision_score(y_test, predictions, average=average)
+  r = recall_score(y_test, predictions, average=average)
+  f1 = f1_score(y_test, predictions, average=average)
+  print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
+
 def run_eval(x_train, y_train, x_test, y_test, search=True):
   """Evaluation on test set"""
 
@@ -64,11 +72,8 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
     model = classifier.fit(x_train, y_train)
 
   predictions = classifier.predict(x_test)
-
-  p = precision_score(y_test, predictions, average='macro')
-  r = recall_score(y_test, predictions, average='macro')
-  f1 = f1_score(y_test, predictions, average='macro')
-  print("p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
+  report_f1(y_test, predictions, 'macro')
+  report_f1(y_test, predictions, 'micro')
 
   probs = classifier.predict_proba(x_test)
 
