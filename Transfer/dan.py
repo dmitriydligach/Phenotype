@@ -24,9 +24,8 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
-import keras as k
+import keras
 from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
@@ -57,7 +56,8 @@ def print_config(cfg):
   print('epochs:', cfg.get('dan', 'epochs'))
   print('embdims:', cfg.get('dan', 'embdims'))
   print('hidden:', cfg.get('dan', 'hidden'))
-  print('learnrt:', cfg.get('dan', 'learnrt'))
+  print('optimizer', cfg.get('dan', 'optimizer'))
+  print('lr:', 10**cfg.getfloat('dan', 'log10lr'))
 
 def report_results(val_y, predictions, average):
   """Report p, r, and f1"""
@@ -129,14 +129,10 @@ def main():
   print('positive examples:', sum(y))
   print('negative examples:', len(y) - sum(y))
 
-  if cfg.has_option('dan', 'optimizer'):
-    optimizer = cfg.get('dan', 'optimizer')
-  else:
-    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
-
   model = get_model(init_vectors, len(dataset.token2int), maxlen)
+  op = getattr(keras.optimizers, cfg.get('dan', 'optimizer'))
   model.compile(loss='binary_crossentropy',
-                optimizer=optimizer,
+                optimizer=op(lr=10**cfg.getfloat('dan', 'log10lr')),
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
