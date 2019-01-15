@@ -131,22 +131,19 @@ def list_layers(model):
 def run_evaluation(disease, judgement):
   """Use pre-trained patient representations"""
 
-  print('disease:', disease)
   x_train, y_train, x_test, y_test = get_data(disease, judgement)
-  print('x_train shape:', x_train.shape)
-  print('x_test shape:', x_test.shape)
-  print('classes:', len(set(y_train)))
+  print('\ndisease: %s, classes: %d' % (disease, len(set(y_train))))
 
   fixed_args = {
     'output_classes': len(set(y_train)),
-    'loss': 'sparse_categorical_crossentropy'
-  }
+    'loss': 'sparse_categorical_crossentropy'}
+
   param_space = {
     'dropout': uniform(0, 0.5),
     'optimizer': ('RMSprop', 'Adam'),
-    'log10lr': uniform(-4, 3), # 1e-4, ..., 1e-1
-    'batch': [2, 4, 8, 16, 32]
-  }
+    # 'log10lr': uniform(-4, 3), # 1e-4, ..., 1e-1
+    'log10lr': (-5, -4, -3, -2, -1),
+    'batch': (2, 4, 8, 16, 32)}
 
   results = rndsearch.run(
     make_model,
@@ -154,9 +151,7 @@ def run_evaluation(disease, judgement):
     param_space,
     x_train,
     y_train,
-    None,
-    None,
-    cfg.getint('search', 'n'))
+    n=cfg.getint('search', 'n'))
 
   # display configs sorted by f1
   print('\nconfigurations sorted by score:')
@@ -165,21 +160,23 @@ def run_evaluation(disease, judgement):
     print('%s: %.3f' % (config, results[config]))
 
   best_config = dict(sorted_by_value[-1])
+  print('best:', best_config)
+  print('best score:', results[sorted_by_value[-1]])
 
   # train with best params and evaluate
-  args = fixed_args.copy()
-  args.update(best_config)
+  args = best_config.copy()
+  args.update(fixed_args)
   model = make_model(args)
-  optim = getattr(keras.optimizers, best_config['optimizer'])
+  optim = getattr(keras.optimizers, args['optimizer'])
   model.compile(
     loss=fixed_args['loss'],
-    optimizer=optim(lr=10**best_config['log10lr']),
+    optimizer=optim(lr=10**args['log10lr']),
     metrics=['accuracy']
   )
   model.fit(
     x_train, y_train,
-    epochs=best_config['epochs'],
-    batch_size=best_config['batch'],
+    epochs=args['epochs'],
+    batch_size=args['batch'],
     verbose=0)
 
   distribution = model.predict(x_test)
@@ -206,6 +203,7 @@ def run_evaluation_all_diseases():
     rs.append(r)
     f1s.append(f1)
 
+  print()
   print('average p = %.3f' % np.mean(ps))
   print('average r = %.3f' % np.mean(rs))
   print('average f1 = %.3f' % np.mean(f1s))

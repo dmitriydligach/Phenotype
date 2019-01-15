@@ -46,20 +46,21 @@ def sample(params):
   return config
 
 def run(
-  make_model,      # function that returns a keras model
-  fixed_args,      # dict with make_model arguments
-  param_space,     # dict with hyperparameter values
-  x_train,         # training examples
-  y_train,         # training labels
-  x_val,           # validation examples
-  y_val,           # validation labels
-  n):              # number of iterations
+  make_model,  # function that returns a keras model
+  fixed_args,  # make_model and other fixed arguments
+  param_space, # possible hyperparameter values
+  x_train,     # training examples
+  y_train,     # training labels
+  x_val=None,  # validation examples
+  y_val=None,  # validation labels
+  n=100,       # number of iterations
+  verbose=0):  # suppress output
   """Random search"""
 
   # need a validation set?
   if x_val == None:
-    x_train, x_val, y_train, y_val = train_test_split(
-      x_train, y_train, test_size=0.2)
+    x_train, x_val, y_train, y_val = \
+      train_test_split(x_train, y_train, test_size=0.2)
 
   # configurations and their scores
   config2score = {}
@@ -67,8 +68,8 @@ def run(
   for i in range(n):
 
     # prevent OOM errors
-    # gc.collect()
-    # bke.clear_session()
+    gc.collect()
+    bke.clear_session()
 
     config = sample(param_space)
     args = config.copy()
