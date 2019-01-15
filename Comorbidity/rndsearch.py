@@ -105,8 +105,9 @@ def run(
     f1 = f1_score(y_val, predictions, average='macro')
     config2score[tuple(config.items())] = f1
 
-    print('[%d] %s' % (i + 1, config))
-    print('[%d] score: %.3f' % (i + 1, f1))
+    if verbose == 1:
+      print('[%d] %s' % (i + 1, config))
+      print('[%d] score: %.3f' % (i + 1, f1))
 
   return config2score
 
