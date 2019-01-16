@@ -135,17 +135,17 @@ def run_evaluation(disease, judgement):
   print('\ndisease: %s, classes: %d' % (disease, len(set(y_train))))
 
   fixed_args = {
+    'epochs': cfg.getint('search', 'max_epochs'),
     'output_classes': len(set(y_train)),
     'loss': 'sparse_categorical_crossentropy'}
 
   param_space = {
-    'dropout': uniform(0, 0.5),
+    'dropout': uniform(0, 0.75),
     'optimizer': ('RMSprop', 'Adam'),
-    # 'log10lr': uniform(-4, 3), # 1e-4, ..., 1e-1
     'log10lr': (-5, -4, -3, -2, -1),
-    'batch': (2, 4, 8, 16, 32)}
+    'batch': (2, 4, 8, 16, 32, 64)}
 
-  results = rndsearch.run(
+  config2score = rndsearch.run(
     make_model,
     fixed_args,
     param_space,
@@ -155,13 +155,13 @@ def run_evaluation(disease, judgement):
 
   # display configs sorted by f1
   print('\nconfigurations sorted by score:')
-  sorted_by_value = sorted(results, key=results.get)
+  sorted_by_value = sorted(config2score, key=config2score.get)
   for config in sorted_by_value:
-    print('%s: %.3f' % (config, results[config]))
+    print('%s: %.3f' % (config, config2score[config]))
 
   best_config = dict(sorted_by_value[-1])
   print('best config:', best_config)
-  print('best score:', results[sorted_by_value[-1]])
+  print('best score:', config2score[sorted_by_value[-1]])
 
   # train with best params and evaluate
   args = best_config.copy()

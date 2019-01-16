@@ -28,8 +28,6 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-DEFAULT_EPOCHS = 100
-
 def sample(params):
   """Sample a configuration from param space"""
 
@@ -93,7 +91,7 @@ def run(
       x_train,
       y_train,
       validation_data=(x_val, y_val),
-      epochs=DEFAULT_EPOCHS,
+      epochs=args['epochs'],
       batch_size=args['batch'],
       verbose=0,
       callbacks=[erstop])
