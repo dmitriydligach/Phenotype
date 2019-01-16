@@ -99,7 +99,10 @@ def run(
       callbacks=[erstop])
 
     # add effective number of epochs to config
-    config['epochs'] = erstop.stopped_epoch - 1
+    if erstop.stopped_epoch > 0:
+      config['epochs'] = erstop.stopped_epoch - 1
+    else:
+      config['epochs'] = 0
 
     predictions = model.predict_classes(x_val)
     f1 = f1_score(y_val, predictions, average='macro')
