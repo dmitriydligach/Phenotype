@@ -160,7 +160,7 @@ def run_evaluation(disease, judgement):
     print('%s: %.3f' % (config, results[config]))
 
   best_config = dict(sorted_by_value[-1])
-  print('best:', best_config)
+  print('best config:', best_config)
   print('best score:', results[sorted_by_value[-1]])
 
   # train with best params and evaluate
