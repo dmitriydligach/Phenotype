@@ -90,18 +90,19 @@ def f1(pos_class='yes'):
   print('r (test) = %.3f' % recall)
   print('f1 (test) = %.3f' % f1)
 
-def print_config(cfg):
+def print_config(cfg, sections):
   """Print configuration settings"""
 
   for section in cfg.sections():
-    for key, val in cfg.items(section):
-      print('[%s] %s = %s' % (section, key, val))
+    if section in sections:
+      for key, val in cfg.items(section):
+        print('[%s] %s = %s' % (section, key, val))
 
 if __name__ == "__main__":
 
   cfg = configparser.ConfigParser()
   cfg.read(sys.argv[1])
-  print_config(cfg)
+  print_config(cfg, ['data'])
 
   base = os.environ['DATA_ROOT']
   train_path = os.path.join(base, cfg.get('data', 'train'))
