@@ -4,7 +4,7 @@ import sys
 sys.dont_write_bytecode = True
 sys.path.append('../Lib/')
 
-import os, numpy
+import os, numpy, configparser
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import cross_val_score
 from sklearn.svm import SVC
@@ -16,9 +16,6 @@ from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 import utils
-
-train_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_cuis/'
-test_path = '/Users/Dima/Loyola/Data/Alcohol/anc_notes_test_cuis/'
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -93,7 +90,22 @@ def f1(pos_class='yes'):
   print('r (test) = %.3f' % recall)
   print('f1 (test) = %.3f' % f1)
 
+def print_config(cfg):
+  """Print configuration settings"""
+
+  for section in cfg.sections():
+    for key, val in cfg.items(section):
+      print('[%s] %s = %s' % (section, key, val))
+
 if __name__ == "__main__":
+
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  print_config(cfg)
+
+  base = os.environ['DATA_ROOT']
+  train_path = os.path.join(base, cfg.get('data', 'train'))
+  test_path = os.path.join(base, cfg.get('data', 'test'))
 
   nfoldcv()
   f1()
