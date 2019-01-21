@@ -23,7 +23,7 @@ def warn(*args, **kwargs):
 import warnings
 warnings.warn = warn
 
-def nfoldcv(metric='f1', pos_class='yes'):
+def nfoldcv(metric='roc_auc', pos_class='yes'):
   """Run n-fold cross-validation"""
 
   train_examples, train_labels = utils.load(train_path)
@@ -36,7 +36,7 @@ def nfoldcv(metric='f1', pos_class='yes'):
   vectorizer = TfidfVectorizer()
   x_train = vectorizer.fit_transform(train_examples)
 
-  classifier = LogisticRegression()
+  classifier = LogisticRegression(class_weight='balanced', C=1)
   cv_scores = cross_val_score(
     classifier,
     x_train,
