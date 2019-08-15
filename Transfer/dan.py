@@ -17,15 +17,15 @@ bke.set_session(s)
 # the rest of imports
 import sys
 sys.path.append('../Lib/')
+sys.path.append('../Codes')
 sys.dont_write_bytecode = True
 import configparser
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.model_selection import train_test_split
-import keras as k
+import keras
 from keras.utils.np_utils import to_categorical
-from keras.optimizers import RMSprop
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation, Dropout
@@ -33,7 +33,8 @@ from keras.layers import GlobalAveragePooling1D
 from keras.layers.embeddings import Embedding
 from keras.models import load_model
 from keras.callbacks import Callback
-import dataset, word2vec, callback
+from data import TransferDataset
+import word2vec, callback
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -55,16 +56,25 @@ def print_config(cfg):
   print('epochs:', cfg.get('dan', 'epochs'))
   print('embdims:', cfg.get('dan', 'embdims'))
   print('hidden:', cfg.get('dan', 'hidden'))
-  print('learnrt:', cfg.get('dan', 'learnrt'))
+  print('optimizer', cfg.get('dan', 'optimizer'))
+  print('lr:', 10**cfg.getfloat('dan', 'log10lr'))
 
-def get_model(cfg, init_vectors, num_of_features):
+def report_results(val_y, predictions, average):
+  """Report p, r, and f1"""
+
+  p = precision_score(val_y, predictions, average=average)
+  r = recall_score(val_y, predictions, average=average)
+  f1 = f1_score(val_y, predictions, average=average)
+
+  print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
+
+def get_model(init_vectors, num_of_features, maxlen):
   """Model definition"""
 
   model = Sequential()
   model.add(Embedding(input_dim=num_of_features,
                       output_dim=cfg.getint('dan', 'embdims'),
                       input_length=maxlen,
-                      trainable=True,
                       weights=init_vectors,
                       name='EL'))
   model.add(GlobalAveragePooling1D(name='AL'))
@@ -74,28 +84,24 @@ def get_model(cfg, init_vectors, num_of_features):
 
   model.add(Dropout(cfg.getfloat('dan', 'dropout')))
 
-  model.add(Dense(classes))
+  model.add(Dense(1))
   model.add(Activation('sigmoid'))
 
   model.summary()
   return model
 
-if __name__ == "__main__":
-
-  cfg = configparser.ConfigParser()
-  cfg.read(sys.argv[1])
-  print_config(cfg)
+def main():
+  """Driver function"""
 
   base = os.environ['DATA_ROOT']
-  train_dir = os.path.join(base, cfg.get('data', 'train'))
-  code_file = os.path.join(base, cfg.get('data', 'codes'))
-
-  dataset = dataset.DatasetProvider(
-    train_dir,
-    code_file,
+  dataset = TransferDataset(
+    os.path.join(base, cfg.get('data', 'train')),
+    os.path.join(base, cfg.get('data', 'codes')),
+    os.path.join(base, cfg.get('data', 'targets')),
     cfg.getint('args', 'min_token_freq'),
     cfg.getint('args', 'max_tokens_in_file'),
-    cfg.getint('args', 'min_examples_per_code'))
+    cfg.getint('args', 'min_examples_per_code'),
+    cfg.getboolean('args', 'collapse_codes'))
   x, y = dataset.load()
   train_x, val_x, train_y, val_y = train_test_split(
     x,
@@ -110,7 +116,6 @@ if __name__ == "__main__":
     init_vectors = [w2v.select_vectors(dataset.token2int)]
 
   # turn x into numpy array among other things
-  classes = len(dataset.code2int)
   train_x = pad_sequences(train_x, maxlen=maxlen)
   val_x = pad_sequences(val_x, maxlen=maxlen)
   train_y = np.array(train_y)
@@ -121,24 +126,19 @@ if __name__ == "__main__":
   print('val_x shape:', val_x.shape)
   print('val_y shape:', val_y.shape)
   print('number of features:', len(dataset.token2int))
-  print('number of labels:', len(dataset.code2int))
+  print('positive examples:', sum(y))
+  print('negative examples:', len(y) - sum(y))
 
-  if cfg.has_option('dan', 'optimizer'):
-    optimizer = cfg.get('dan', 'optimizer')
-  else:
-    optimizer = RMSprop(lr=cfg.getfloat('dan', 'learnrt'))
-
-  model = get_model(cfg, init_vectors, len(dataset.token2int))
+  model = get_model(init_vectors, len(dataset.token2int), maxlen)
+  op = getattr(keras.optimizers, cfg.get('dan', 'optimizer'))
   model.compile(loss='binary_crossentropy',
-                optimizer=optimizer,
+                optimizer=op(lr=10**cfg.getfloat('dan', 'log10lr')),
                 metrics=['accuracy'])
   model.fit(train_x,
             train_y,
-            callbacks=[callback.Metrics()] if val_x.shape[0]>0 else None,
             validation_data=(val_x, val_y) if val_x.shape[0]>0 else None,
             epochs=cfg.getint('dan', 'epochs'),
-            batch_size=cfg.getint('dan', 'batch'),
-            validation_split=0.0)
+            batch_size=cfg.getint('dan', 'batch'))
 
   model.save(MODEL_FILE)
 
@@ -146,25 +146,13 @@ if __name__ == "__main__":
   if cfg.getfloat('args', 'test_size') == 0:
     exit()
 
-  # probability for each class; (test size, num of classes)
-  distribution = model.predict(val_x)
+  predictions = model.predict_classes(val_x)
+  report_results(val_y, predictions, 'macro')
+  report_results(val_y, predictions, 'micro')
 
-  # turn into an indicator matrix
-  distribution[distribution < 0.5] = 0
-  distribution[distribution >= 0.5] = 1
+if __name__ == "__main__":
 
-  f1 = f1_score(val_y, distribution, average='macro')
-  p = precision_score(val_y, distribution, average='macro')
-  r = recall_score(val_y, distribution, average='macro')
-  print("\nmacro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
-  f1 = f1_score(val_y, distribution, average='micro')
-  p = precision_score(val_y, distribution, average='micro')
-  r = recall_score(val_y, distribution, average='micro')
-  print("micro: p: %.3f - r: %.3f - f1: %.3f" % (p, r, f1))
-
-  outf1 = open(RESULTS_FILE, 'w')
-  int2code = dict((value, key) for key, value in list(dataset.code2int.items()))
-  f1_scores = f1_score(val_y, distribution, average=None)
-  outf1.write("%s|%s\n" % ('macro', f1))
-  for index, f1 in enumerate(f1_scores):
-    outf1.write("%s|%s\n" % (int2code[index], f1))
+  cfg = configparser.ConfigParser()
+  cfg.read(sys.argv[1])
+  print_config(cfg)
+  main()
