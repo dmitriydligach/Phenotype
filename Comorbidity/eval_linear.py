@@ -24,6 +24,7 @@ from keras.models import load_model
 from keras.models import Model
 from dataset import DatasetProvider
 import i2b2
+from sklearn.datasets import dump_svmlight_file
 
 # ignore sklearn warnings
 def warn(*args, **kwargs):
@@ -221,6 +222,8 @@ def data_sparse(cfg, disease, judgement, use_svd=False):
     vocabulary=None,
     binary=False)
   x_train = vectorizer.fit_transform(x_train)
+
+  dump_svmlight_file(train_tfidf_matrix, y_train, disease + "_train.libsvm")
 
   # now handle the test set
   test_data_provider = DatasetProvider(

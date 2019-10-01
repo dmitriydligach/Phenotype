@@ -23,7 +23,7 @@ def main(args):
 
     cfg = configparser.ConfigParser()
     cfg.read(args[0])
-    maxlen = 1387
+    maxlen = 1535
 
     # load pre-trained model
     model = load_model(cfg.get('data', 'model_file'))
@@ -37,7 +37,7 @@ def main(args):
 
     for line in sys.stdin:
         line = line.rstrip()
-        ptid, cui_str = line.split(": ")
+        ptid, cui_str = line.split(":")
         sys.stderr.write("Reading cuis for patient %s\n" % (ptid))
         cuis = cui_str.split(" ")
         example = []
