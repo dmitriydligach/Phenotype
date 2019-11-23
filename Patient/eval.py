@@ -25,6 +25,8 @@ from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_recall_curve, auc
+from sklearn.metrics import make_scorer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
@@ -62,6 +64,22 @@ def report_f1(y_test, predictions, average):
   f1 = f1_score(y_test, predictions, average=average)
   print("[%s] p: %.3f - r: %.3f - f1: %.3f" % (average, p, r, f1))
 
+def report_pr_auc(y_true, probs):
+  """PR AUC; x-axis should be recall, y-axis precision"""
+
+  precision, recall, _ = precision_recall_curve(y_true, probs)
+  pr_auc = auc(recall, precision)
+  print('pr auc: %.3f' % pr_auc)
+
+def pr_auc_for_grid_search():
+  """Make PR AUC available for grid search"""
+
+  pr_auc = make_scorer(score_func=precision_recall_auc,
+                       greater_is_better=True,
+                       needs_proba=True, 
+                       needs_threshold=False)
+  return pr_auc
+
 def run_eval(x_train, y_train, x_test, y_test, search=True):
   """Evaluation on test set"""
 
@@ -78,9 +96,12 @@ def run_eval(x_train, y_train, x_test, y_test, search=True):
   probs = classifier.predict_proba(x_test)
 
   roc_auc = roc_auc_score(y_test, probs[:, 1])
+  print('roc auc: %.3f' % roc_auc)
+  
   accuracy = accuracy_score(y_test, predictions)
-  print('auc: %.3f' % roc_auc)
-  print('acc: %.3f' % accuracy)
+  print('accuracy: %.3f' % accuracy)
+
+  report_pr_auc(y_test, probs[:, 1])
 
 def data_dense():
   """Data to feed into code prediction model"""
